@@ -152,9 +152,9 @@ export const RESULT = {
 // Two chat lines, not a card: the answer is a no, and a no is shorter than an
 // explanation. The first line is the reason, the second is where to go instead.
 export const EXIT = {
-  line1: 'Program ini membutuhkan pengalaman di bidang HR.',
-  line2: 'Temukan program lain RevoU yang lebih cocok untuk kamu.',
-  cta: 'Lihat program lain',
+  line1: 'Program ini memerlukan pengalaman di bidang HR.',
+  line2: 'Temukan program yang cocok denganmu.',
+  cta: 'Cari program lain',
   ctaHref: 'https://revou.co/important-links',
 };
 
