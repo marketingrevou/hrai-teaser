@@ -1,13 +1,21 @@
 # Tone guideline — generated reveal copy
 
 Applies to the two model-written blocks on `/hasil`: `gap_points` ("Untuk sampai ke
-sana", three bullets) and `ai_body` ("Bagaimana AI bisa membantumu", one paragraph).
+sana", two sentences) and `ai_body` ("Bagaimana AI bisa membantumu", one paragraph).
 
 The gap block is bullets, so the rules below read it as one block joined end to end:
-`kamu` has to appear somewhere in the three, not in each one, and an abstraction
-repeated across two bullets is the same repetition R6 bans inside a paragraph. On top
-of that each bullet stands alone — one idea, fourteen words, no bullet that only makes
-sense after the one above it.
+`kamu` has to appear somewhere in the two, not in each one, and an abstraction
+repeated across both is the same repetition R6 bans inside a paragraph. On top of that
+each bullet stands alone — one idea, fourteen words, no bullet that only makes sense
+after the one above it.
+
+Two sentences, not three: what you already have, then what the next level asks. The
+"where is my room" beat is not gone, it rides along in the second sentence — altitude
+picks that sentence's second clause. Dropping it instead would have left altitude
+reaching no copy at all, since `ai_body` reads only `ai_level`, while `cacheKey` still
+keys on it — generations spent on variants that cannot differ. Two ideas in one
+fourteen-word sentence is the real constraint here: state the ask first, the room
+second, joined with `dan`, `karena`, or `sejak`.
 
 **This is implemented, not aspirational.** `lib/tone.js` holds both halves: the
 Indonesian `VOICE_PROMPT` the model reads (§7 below) and the checks its output has to
@@ -142,16 +150,15 @@ second time, say it in plain words.
 > posisi kamu adalah saat kamu bisa menghitung sendiri dampak biaya dari satu opsi
 > restrukturisasi, pekerjaan yang dulu dibawa ke konsultan.
 
-**`gap_points`** (gen · business partnering · altitude 4 · → Head of HR, three bullets,
+**`gap_points`** (gen · business partnering · altitude 4 · → Head of HR, two sentences,
 ≤14 words each):
 
 > - Kamu sudah biasa membaca masalah orang dari sisi bisnisnya.
-> - Head of HR minta angkanya juga: struktur gaji sampai desain organisasi.
-> - Akses ke ruang keputusan sudah kamu punya, jadi pembedanya isi jawabanmu.
+> - Head of HR minta angkanya juga, karena kursi itu sudah kamu punya.
 
-Same three beats, same constraints, same hard rules. Shorter, and a person is in it.
-The beats were already three, which is why they split into bullets cleanly: what you
-have, what the next level asks, where your room is.
+Same beats, same constraints, same hard rules. Shorter, and a person is in it. The
+altitude-4 room — access is no longer the obstacle — is the `karena` clause rather than
+a line of its own, which is what makes two sentences carry three beats.
 
 ---
 

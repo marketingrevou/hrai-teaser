@@ -23,7 +23,7 @@ own to be the payoff on.
 | Scene | What |
 | --- | --- |
 | 0 | Loading. Three steps tick over while the result is assembled |
-| 1 | The path, and under a hairline, `Untuk sampai ke sana` as three bullets |
+| 1 | The path, and under a hairline, `Untuk sampai ke sana` as two sentences |
 | 2 | `Bagaimana AI bisa membantumu` |
 | 3 | `Program ini dirancang khusus untuk membuatmu bisa meraihnya.` — types itself out, a bar fills, no tap |
 | 4 | The program. One screen, centred, nothing after it but the CTA |
