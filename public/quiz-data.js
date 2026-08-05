@@ -39,11 +39,11 @@ export const QUESTIONS = [
   {
     id: 'altitude',
     eyebrow: '2 dari 4',
-    // Asks for the habit, not one remembered event: a single change can be
-    // unrepresentative, and recalling one is work the visitor has to do before
-    // they can answer. The examples sit in the subtitle so the bubble stays one
-    // question long.
-    question: 'Kalau perusahaan kamu mengambil keputusan besar, kamu biasanya dilibatkan di tahap mana?',
+    // Anchored to the last real decision rather than a general habit, which is
+    // what the options answer: each one describes a specific place to have stood
+    // in a specific change, not a tendency. The examples sit in the subtitle so
+    // the bubble stays one question long.
+    question: 'Terakhir kali perusahaan mengambil keputusan besar, di tahap mana kamu dilibatkan?',
     subtitle: 'Restrukturisasi, efisiensi biaya, atau perubahan arah bisnis.',
     ack: 'Baik.',
     options: [
