@@ -6,8 +6,7 @@ export const HERO = {
   eyebrow: 'Program baru RevoU · September 2026',
   headline: 'Program HR pertama yang dibangun untuk',
   headlineHighlight: 'era AI.',
-  body: 'Program ini dibangun untuk level tertentu. Jawab empat pertanyaan singkat untuk cek apakah ini cocok untukmu.',
-  cta: 'Explore more',
+  cta: 'Tes kecocokan kamu',
 };
 
 export const QUESTIONS = [

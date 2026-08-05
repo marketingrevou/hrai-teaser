@@ -500,7 +500,6 @@
       <h1 id="hero-headline"></h1>
     </div>
     <div class="hero-rule"></div>
-    <p id="hero-body"></p>
     <button class="btn-primary" id="hero-cta" type="button"></button>
   </section>
 
@@ -666,7 +665,6 @@ function track(payload) {
 
 $('hero-eyebrow').textContent = HERO.eyebrow;
 $('hero-headline').innerHTML = `${HERO.headline} <span class="hl">${HERO.headlineHighlight}</span>`;
-$('hero-body').textContent = HERO.body;
 $('hero-cta').textContent = HERO.cta;
 
 $('hero-cta').addEventListener('click', () => {
