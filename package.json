@@ -1,0 +1,16 @@
+{
+  "name": "hr-path-teaser",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Strategic HR with AI — chatbot-style teaser quiz (RevoU)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node scripts/check-copy.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Program HR pertama yang dibangun untuk era AI · RevoU</title>
+<meta name="description" content="Jawab empat pertanyaan singkat dan lihat jalur dari posisi kamu sekarang ke yang kamu kejar.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --c-blue: #293ff5;
+    --c-blue-deep: #052699;
+    --c-blue-mid: #116af8;
+    --c-cyan: #00dac9;
+    --c-pink: #ff0f4c;
+    --c-pink-soft: #ff7d9e;
+    --c-yellow: #ffde3d;
+    --c-yellow-ink: #16204d;
+
+    --text: #ffffff;
+    --muted: rgba(255, 255, 255, 0.78);
+    --muted-2: rgba(255, 255, 255, 0.56);
+    --hair: rgba(255, 255, 255, 0.16);
+    --hair-strong: rgba(255, 255, 255, 0.30);
+    --card: rgba(255, 255, 255, 0.09);
+    --card-2: rgba(255, 255, 255, 0.06);
+
+    --sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --radius: 18px;
+    --shadow: 0 24px 60px -22px rgba(3, 17, 90, 0.55);
+    --shadow-sm: 0 14px 34px -18px rgba(3, 17, 90, 0.5);
+    --cta-grad: radial-gradient(125% 320% at 50% 0%, var(--c-pink-soft) 0%, #ff618a 25%, #ff4675 50%, #ff2a61 75%, var(--c-pink) 100%);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background:
+      radial-gradient(55% 46% at 0% 100%, rgba(0, 218, 201, 0.30) 0%, rgba(0, 218, 201, 0.10) 55%, rgba(0, 218, 201, 0) 100%),
+      radial-gradient(48% 52% at 100% 6%, rgba(255, 15, 76, 0.24) 0%, rgba(255, 15, 76, 0.08) 55%, rgba(255, 15, 76, 0) 100%),
+      radial-gradient(70% 60% at 50% 34%, rgba(17, 106, 248, 0.45) 0%, rgba(41, 63, 245, 0.22) 55%, rgba(41, 63, 245, 0) 100%),
+      var(--c-blue);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { overscroll-behavior-y: none; }
+
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-yellow);
+  }
+
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  :is(button, a):focus-visible {
+    outline: 2.5px solid var(--c-yellow);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+    background: transparent;
+  }
+
+  /* ---------- Hero ---------- */
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 22px;
+    flex: 1;
+    padding: 32px 24px calc(34px + env(safe-area-inset-bottom));
+  }
+
+  .hero h1 {
+    font-size: clamp(34px, 8.6vw, 50px);
+    line-height: 1.03;
+    letter-spacing: -0.024em;
+    font-weight: 800;
+    margin: 0;
+    max-width: 15ch;
+    color: var(--text);
+  }
+
+  .hero h1 .hl {
+    background: linear-gradient(transparent 62%, var(--c-yellow) 62%);
+    padding: 0 2px;
+    color: var(--c-yellow-ink);
+  }
+
+  .hero p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 38ch;
+  }
+
+  .btn-primary {
+    align-self: flex-start;
+    background: var(--cta-grad);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: 700;
+    box-shadow: 0 14px 34px -12px rgba(255, 15, 76, 0.6);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 44px -12px rgba(255, 15, 76, 0.7); }
+
+  .hero-rule {
+    height: 1px;
+    background: var(--hair);
+    max-width: 68px;
+  }
+
+  /* ---------- Chat shell ---------- */
+
+  .chat { display: none; flex-direction: column; flex: 1; min-height: 0; }
+  .chat[data-active='true'] { display: flex; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px 12px;
+    background: rgba(5, 38, 153, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .back {
+    display: none;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--hair-strong);
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+    padding: 0;
+    flex: none;
+    color: var(--text);
+  }
+  .back[data-show='true'] { display: block; }
+  .back:hover { border-color: var(--c-cyan); background: rgba(255, 255, 255, 0.18); }
+
+  .topbar-meta { flex: 1; min-width: 0; }
+  .topbar-meta .who { font-size: 13px; font-weight: 700; color: var(--text); }
+  .topbar-meta .step { display: block; margin-top: 1px; }
+
+  .progress {
+    height: 3px;
+    background: var(--hair);
+    border-radius: 99px;
+    overflow: hidden;
+    margin: 0 18px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .progress[data-show='true'] { opacity: 1; }
+  .progress i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--c-cyan), var(--c-yellow));
+    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .log {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 18px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: thin;
+  }
+
+  /* ---------- Bubbles ---------- */
+
+  .row { display: flex; gap: 9px; align-items: flex-end; }
+  .row.me { justify-content: flex-end; }
+
+  .avatar {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--c-blue-deep);
+    border: 1px solid var(--hair);
+    display: grid;
+    place-items: center;
+    margin-bottom: 2px;
+  }
+  .avatar::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-yellow);
+  }
+  .row.stacked .avatar { visibility: hidden; }
+
+  .bubble {
+    max-width: min(80%, 430px);
+    padding: 11px 15px;
+    border-radius: var(--radius);
+    font-size: 15.5px;
+    line-height: 1.48;
+    animation: pop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .row:not(.me) .bubble {
+    background: var(--card);
+    border: 1px solid var(--hair);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom-left-radius: 6px;
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+  .row.stacked:not(.me) .bubble { border-bottom-left-radius: var(--radius); }
+
+  .row.me .bubble {
+    background: var(--c-yellow);
+    border-bottom-right-radius: 6px;
+    font-weight: 700;
+    color: var(--c-yellow-ink);
+  }
+
+  .bubble.q { font-size: 17px; letter-spacing: -0.008em; }
+  .bubble .sub { display: block; margin-top: 5px; font-size: 14px; color: var(--muted); }
+  .bubble .blk-head {
+    display: block;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-yellow);
+    margin-bottom: 6px;
+  }
+
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(7px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .typing { display: flex; gap: 4px; padding: 15px 16px; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.25s infinite ease-in-out both;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.17s; }
+  .typing span:nth-child(3) { animation-delay: 0.34s; }
+  @keyframes blink { 0%, 70%, 100% { opacity: 0.25; transform: none; } 35% { opacity: 1; transform: translateY(-2px); } }
+
+  .caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--text);
+    vertical-align: -0.14em;
+    margin-left: 1px;
+    animation: caret 0.9s steps(1) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  /* ---------- Option chips ---------- */
+
+  .composer {
+    flex: none;
+    padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, rgba(5, 38, 153, 0.85) 42%);
+  }
+
+  .options { display: flex; flex-direction: column; gap: 7px; }
+
+  .chip {
+    text-align: left;
+    background: var(--card-2);
+    border: 1.5px solid var(--hair);
+    border-radius: var(--radius);
+    padding: 12px 15px;
+    font-size: 15px;
+    line-height: 1.36;
+    color: var(--text);
+    transition: border-color 0.14s ease, background 0.14s ease, transform 0.14s ease;
+    animation: pop 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .chip:hover { border-color: var(--c-cyan); background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); }
+  .chip:active { transform: scale(0.99); }
+  .chip[data-picked='true'] { border-color: var(--c-yellow); background: var(--c-yellow); color: var(--c-yellow-ink); }
+  .chip[disabled] { cursor: default; opacity: 0.45; }
+  .chip[data-picked='true'][disabled] { opacity: 1; }
+
+  /* ---------- Result blocks ---------- */
+
+  .card {
+    max-width: min(88%, 470px);
+    border-radius: var(--radius);
+    animation: pop 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .path {
+    background: var(--card);
+    border: 1px solid var(--hair);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom-left-radius: 6px;
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .path .leg + .leg { margin-top: 14px; }
+  .path .val {
+    display: block;
+    margin-top: 3px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .path .arrow { margin: 12px 0 0; color: var(--c-yellow); font-size: 20px; line-height: 1; }
+  .path .arrow::before { content: '↓'; }
+
+  .program {
+    background: var(--c-blue-deep);
+    color: var(--text);
+    padding: 22px;
+    max-width: min(92%, 480px);
+    border: 1px solid var(--hair-strong);
+    box-shadow: var(--shadow);
+  }
+  .program .name {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 6px 0 0;
+  }
+  .program .meta {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-yellow);
+  }
+  .program ul { list-style: none; margin: 18px 0 20px; padding: 0; display: grid; gap: 9px; }
+  .program li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 14.5px;
+    line-height: 1.42;
+    color: rgba(255, 255, 255, 0.86);
+  }
+  .program li::before {
+    content: '';
+    position: absolute;
+    left: 2px; top: 8px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--c-yellow);
+  }
+  .program .cta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    background: var(--cta-grad);
+    color: #fff;
+    border-radius: 999px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    box-shadow: 0 14px 34px -12px rgba(255, 15, 76, 0.6);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .program .cta:hover { transform: translateY(-2px); box-shadow: 0 20px 44px -12px rgba(255, 15, 76, 0.7); }
+
+  .bridge {
+    max-width: min(88%, 470px);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    padding: 4px 2px;
+    color: var(--text);
+    animation: pop 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* ---------- Exit ---------- */
+
+  .exit {
+    background: var(--card);
+    border: 1px solid var(--hair);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .exit h2 {
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.018em;
+    line-height: 1.16;
+    margin: 0 0 12px;
+    color: var(--text);
+  }
+  .exit p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+  .exit .divider {
+    border-top: 1px solid var(--hair);
+    margin-top: 18px;
+    padding-top: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .exit .cta {
+    display: inline-block;
+    margin-top: 12px;
+    text-decoration: none;
+    background: var(--cta-grad);
+    color: #fff;
+    border-radius: 999px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 14px 34px -12px rgba(255, 15, 76, 0.55);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .exit .cta:hover { transform: translateY(-2px); }
+
+  .restart {
+    background: none;
+    border: 0;
+    padding: 6px 2px;
+    font-size: 13px;
+    color: var(--muted-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .restart:hover { color: var(--text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+    .typing span { opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Screen 1 — Hero. No program name here; the name is the payoff. -->
+  <section class="hero" id="hero">
+    <div>
+      <p class="eyebrow" id="hero-eyebrow"></p>
+      <h1 id="hero-headline"></h1>
+    </div>
+    <div class="hero-rule"></div>
+    <p id="hero-body"></p>
+    <button class="btn-primary" id="hero-cta" type="button"></button>
+  </section>
+
+  <!-- Screens 2–6 — one continuous conversation -->
+  <section class="chat" id="chat" data-active="false">
+    <header class="topbar">
+      <button class="back" id="back" type="button" aria-label="Kembali ke pertanyaan sebelumnya">←</button>
+      <div class="topbar-meta">
+        <span class="who">RevoU</span>
+        <span class="eyebrow step" id="step-label">Program baru · September 2026</span>
+      </div>
+    </header>
+    <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-label="Kemajuan"><i id="progress-bar"></i></div>
+    <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions text"></div>
+    <div class="composer"><div class="options" id="options"></div></div>
+  </section>
+</div>
+
+<script type="module">
+import { HERO, QUESTIONS, RESULT, EXIT } from './quiz-data.js';
+
+const $ = (id) => document.getElementById(id);
+const log = $('log');
+const options = $('options');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const session = (crypto.randomUUID?.() ?? String(Date.now())).slice(0, 8);
+
+// `gen` invalidates an in-flight step when the visitor taps back, so a rewound
+// question can never resolve into the abandoned branch of the flow.
+const state = { step: 0, answers: [], busy: false, gen: 0, resolveAsk: null };
+
+/* ---------- helpers ---------- */
+
+const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 60) : ms));
+
+function scrollDown() {
+  log.scrollTo({ top: log.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
+}
+
+function node(tag, cls, parent) {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  el.dataset.step = String(state.step);
+  (parent ?? log).append(el);
+  return el;
+}
+
+function row(side, { stacked = false } = {}) {
+  const r = node('div', `row${side === 'me' ? ' me' : ''}${stacked ? ' stacked' : ''}`);
+  if (side !== 'me') r.append(Object.assign(document.createElement('div'), { className: 'avatar' }));
+  scrollDown();
+  return r;
+}
+
+async function typingPause(ms = 620) {
+  const r = row('bot');
+  const dots = document.createElement('div');
+  dots.className = 'bubble typing';
+  dots.innerHTML = '<span></span><span></span><span></span>';
+  r.append(dots);
+  scrollDown();
+  await wait(ms);
+  r.remove();
+}
+
+/** Types text out character by character; instant when reduced motion is on. */
+async function typeInto(el, text) {
+  if (reduced) { el.textContent = text; scrollDown(); return; }
+  const caret = document.createElement('i');
+  caret.className = 'caret';
+  el.append(caret);
+  const step = text.length > 160 ? 3 : 1;
+  for (let i = 0; i < text.length; i += step) {
+    caret.before(document.createTextNode(text.slice(i, i + step)));
+    if (i % 12 === 0) scrollDown();
+    await wait(11);
+  }
+  caret.remove();
+  scrollDown();
+}
+
+/** One bot message. `pause` is the typing-indicator dwell before it appears. */
+async function say(text, { pause = 620, cls = '', stacked = false, sub = '' } = {}) {
+  if (pause) await typingPause(pause);
+  const r = row('bot', { stacked });
+  const b = document.createElement('div');
+  b.className = `bubble ${cls}`.trim();
+  r.append(b);
+  await typeInto(b, text);
+  if (sub) {
+    const s = document.createElement('span');
+    s.className = 'sub';
+    s.textContent = sub;
+    b.append(s);
+    scrollDown();
+  }
+  return b;
+}
+
+function me(text) {
+  const r = row('me');
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.textContent = text;
+  r.append(b);
+  scrollDown();
+}
+
+function clearOptions() { options.replaceChildren(); }
+
+/** Renders tappable answers and resolves with the chosen index, or -1 if rewound. */
+function ask(list) {
+  clearOptions();
+  return new Promise((resolve) => {
+    state.resolveAsk = resolve;
+    list.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip';
+      btn.textContent = opt.label;
+      btn.style.animationDelay = reduced ? '0ms' : `${i * 34}ms`;
+      btn.addEventListener('click', () => {
+        if (state.busy) return;
+        state.busy = true;
+        btn.dataset.picked = 'true';
+        [...options.children].forEach((c) => { c.disabled = true; });
+        setTimeout(() => {
+          clearOptions();
+          state.busy = false;
+          state.resolveAsk = null;
+          resolve(i);
+        }, reduced ? 0 : 130);
+      });
+      options.append(btn);
+    });
+    options.firstElementChild?.focus({ preventScroll: true });
+  });
+}
+
+function setProgress(answered) {
+  const p = $('progress');
+  const show = answered >= 0;
+  const clamped = Math.min(Math.max(answered, 0), 4);
+  p.dataset.show = show ? 'true' : 'false';
+  p.setAttribute('aria-valuenow', String(clamped));
+  $('progress-bar').style.width = `${(clamped / 4) * 100}%`;
+}
+
+function setStepLabel(text) { $('step-label').textContent = text; }
+
+function track(payload) {
+  const body = JSON.stringify({ session, ...payload });
+  // Fire and forget; a failed beacon must never block the experience.
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon('/api/track', new Blob([body], { type: 'application/json' }));
+  } else {
+    fetch('/api/track', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(() => {});
+  }
+}
+
+/* ---------- flow ---------- */
+
+$('hero-eyebrow').textContent = HERO.eyebrow;
+$('hero-headline').innerHTML = `${HERO.headline} <span class="hl">${HERO.headlineHighlight}</span>`;
+$('hero-body').textContent = HERO.body;
+$('hero-cta').textContent = HERO.cta;
+
+$('hero-cta').addEventListener('click', () => {
+  $('hero').style.display = 'none';
+  $('chat').dataset.active = 'true';
+  track({ event: 'start' });
+  advance(0);
+});
+
+$('back').addEventListener('click', () => {
+  if (state.busy || state.step === 0 || state.step >= QUESTIONS.length) return;
+
+  // Abandon the in-flight step, then rewind one question.
+  state.gen += 1;
+  state.resolveAsk?.(-1);
+  state.resolveAsk = null;
+
+  state.step -= 1;
+  state.answers.pop();
+  // Drop every node created at this step or later.
+  [...log.children].forEach((n) => { if (Number(n.dataset.step) >= state.step) n.remove(); });
+  clearOptions();
+
+  track({ event: 'back', screen: QUESTIONS[state.step].id });
+  advance(state.step, { repeat: true });
+});
+
+function syncChrome() {
+  const q = QUESTIONS[state.step];
+  $('back').dataset.show = state.step > 0 && state.step < QUESTIONS.length ? 'true' : 'false';
+  setProgress(state.answers.length);
+  setStepLabel(q ? q.eyebrow : 'Hasil');
+}
+
+/** Runs one question and then hands off to the next step, the exit, or the result. */
+async function advance(step, { repeat = false } = {}) {
+  const gen = ++state.gen;
+  const stale = () => gen !== state.gen;
+
+  state.step = step;
+  const q = QUESTIONS[step];
+  syncChrome();
+
+  await say(q.question, { pause: repeat ? 260 : 640, cls: 'q', sub: q.subtitle ?? '' });
+  if (stale()) return;
+
+  const choice = await ask(q.options);
+  if (choice < 0 || stale()) return;
+
+  const opt = q.options[choice];
+  me(opt.label);
+  state.answers.push(choice);
+  setProgress(state.answers.length);
+
+  track({
+    event: 'answer',
+    screen: q.id,
+    ...(q.id === 'role' ? { role: opt.label, role_type: opt.role_type } : {}),
+    ...(q.id === 'altitude' ? { altitude: opt.altitude } : {}),
+    ...(q.id === 'ai' ? { ai_level: opt.ai_level } : {}),
+    ...(q.id === 'aspiration' ? { aspiration: opt.label } : {}),
+  });
+
+  if (opt.exit) {
+    state.step = step + 1;
+    return showExit();
+  }
+  if (opt.ack) {
+    await say(opt.ack, { pause: 460 });
+    if (stale()) return;
+  }
+
+  if (step + 1 < QUESTIONS.length) return advance(step + 1);
+  state.step = QUESTIONS.length;
+  return showResult();
+}
+
+/* ---------- result ---------- */
+
+async function showResult() {
+  $('back').dataset.show = 'false';
+  setStepLabel('Hasil');
+  setProgress(4);
+
+  const pending = fetch('/api/reveal', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ answers: state.answers }),
+  })
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+    .catch(() => null);
+
+  await say(RESULT.intro, { pause: 420 });
+
+  // The result screen must always render. If the request fails outright we still
+  // have the derived labels client-side, and the server owns the copy fallback.
+  const data = await withMinimumDwell(pending, 900);
+  const role = QUESTIONS[0].options[state.answers[0]];
+  const aspiration = QUESTIONS[3].options[state.answers[3]];
+  const roleLabel = data?.role_label ?? role.path_label ?? role.label;
+  const target = data?.aspiration_to ?? aspiration.aspiration_to;
+
+  // A. Path
+  await typingPause(520);
+  renderPath(roleLabel, target);
+
+  // B. Yang dibutuhkan untuk sampai ke sana
+  if (data?.gap_body) await sayBlock(RESULT.gapHeading, data.gap_body, 700);
+  // C. Tentang AI
+  if (data?.ai_body) await sayBlock(RESULT.aiHeading, data.ai_body, 620, true);
+
+  // D. Bridge line + program card
+  await typingPause(560);
+  const bridge = node('div', 'bridge');
+  await typeInto(bridge, RESULT.bridge);
+  await wait(reduced ? 0 : 260);
+  renderProgramCard();
+
+  track({ event: 'complete', completed: true });
+  offerRestart();
+}
+
+/** Keeps the typing indicator up for at least `ms` so a fast reply still feels composed. */
+async function withMinimumDwell(promise, ms) {
+  const [value] = await Promise.all([promise, typingPause(ms)]);
+  return value;
+}
+
+async function sayBlock(heading, body, pause, stacked = false) {
+  const b = await say('', { pause, stacked });
+  const h = document.createElement('span');
+  h.className = 'blk-head';
+  h.textContent = heading;
+  b.prepend(h);
+  await typeInto(b, body);
+}
+
+function renderPath(roleLabel, target) {
+  const r = row('bot');
+  const card = document.createElement('div');
+  card.className = 'card path';
+  card.innerHTML = `
+    <div class="leg">
+      <span class="eyebrow">${escapeHtml(RESULT.pathNowLabel)}</span>
+      <span class="val">${escapeHtml(roleLabel)}</span>
+    </div>
+    <p class="arrow" aria-hidden="true"></p>
+    <div class="leg">
+      <span class="eyebrow">${escapeHtml(RESULT.pathTargetLabel)}</span>
+      <span class="val">${escapeHtml(target)}</span>
+    </div>`;
+  r.append(card);
+  scrollDown();
+}
+
+function renderProgramCard() {
+  const r = row('bot', { stacked: true });
+  const card = document.createElement('div');
+  card.className = 'card program';
+  card.innerHTML = `
+    <span class="meta">${escapeHtml(RESULT.card.meta)}</span>
+    <h2 class="name">${escapeHtml(RESULT.card.name)}</h2>
+    <ul>${RESULT.card.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
+    <a class="cta" href="${RESULT.card.ctaHref}">${escapeHtml(RESULT.card.cta)}</a>`;
+  card.querySelector('.cta').addEventListener('click', () => track({ event: 'oh_click', oh_clicked: true }));
+  r.append(card);
+  scrollDown();
+}
+
+/* ---------- exit ---------- */
+
+async function showExit() {
+  $('back').dataset.show = 'false';
+  setProgress(-1);
+  setStepLabel('Hasil');
+  clearOptions();
+
+  await say(EXIT.heading, { pause: 640 });
+  const r = row('bot', { stacked: true });
+  const card = document.createElement('div');
+  card.className = 'card exit';
+  card.innerHTML = `
+    <p>${escapeHtml(EXIT.body1)}</p>
+    <p>${escapeHtml(EXIT.body2)}</p>
+    <div class="divider">${escapeHtml(EXIT.dividerHeading)}
+      <a class="cta" href="${EXIT.ctaHref}">${escapeHtml(EXIT.cta)}</a>
+    </div>`;
+  card.querySelector('.cta').addEventListener('click', () =>
+    track({ event: 'other_programs_click', other_programs_clicked: true }));
+  r.append(card);
+  scrollDown();
+
+  track({ event: 'exit', exited_non_hr: true });
+  offerRestart();
+}
+
+function offerRestart() {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'restart';
+  btn.textContent = 'Ulangi dari awal';
+  btn.addEventListener('click', () => location.reload());
+  options.replaceChildren(btn);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+</body>
+</html>
