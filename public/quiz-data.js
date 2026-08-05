@@ -156,7 +156,7 @@ export const RESULT = {
     headlineHighlight: 'AI',
     sub: 'A 15-week program that takes HR professionals from execution to strategy, with AI built into how you work.',
     cta: 'Daftar Open House',
-    ctaHref: 'https://openhouse.revou.co/human-capital?utm_ops=teaser',
+    ctaHref: 'https://openhouse.revou.co/strategic-hr?utm_ops=teaser',
   },
 };
 
