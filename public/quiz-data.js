@@ -85,9 +85,7 @@ export const RESULT = {
       'AI agents and workflows you built, plus 7 portfolio projects',
     ],
     cta: 'Daftar Open House',
-    // TODO(spec §6): Open House CTA has no supporting line yet. Add one short
-    // reason-to-attend here once marketing decides it.
-    ctaHref: '#open-house',
+    ctaHref: 'https://openhouse.revou.co/human-capital?utm_ops=teaser',
   },
 };
 

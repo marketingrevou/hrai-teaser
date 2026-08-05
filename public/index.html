@@ -817,7 +817,7 @@ function renderProgramCard() {
     <span class="meta">${escapeHtml(RESULT.card.meta)}</span>
     <h2 class="name">${escapeHtml(RESULT.card.name)}</h2>
     <ul>${RESULT.card.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
-    <a class="cta" href="${RESULT.card.ctaHref}">${escapeHtml(RESULT.card.cta)}</a>`;
+    <a class="cta" href="${RESULT.card.ctaHref}" target="_blank" rel="noopener">${escapeHtml(RESULT.card.cta)}</a>`;
   card.querySelector('.cta').addEventListener('click', () => track({ event: 'oh_click', oh_clicked: true }));
   r.append(card);
   scrollDown();
