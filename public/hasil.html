@@ -559,8 +559,11 @@ const cacheKey = `hrp:res:${key}`;
 /** Prefetched by the chat, cached here on refresh, fetched fresh on a deep link. */
 async function loadResult() {
   try {
-    const hit = sessionStorage.getItem(cacheKey);
-    if (hit) return JSON.parse(hit);
+    const hit = JSON.parse(sessionStorage.getItem(cacheKey));
+    // Only trust a hit that matches the shape this page renders. A payload stored
+    // before gap_body became gap_points still parses, so without this check the
+    // gap block silently disappears for anyone holding an older tab open.
+    if (Array.isArray(hit?.gap_points) && hit.ai_body) return hit;
   } catch { /* ignore */ }
 
   try {
