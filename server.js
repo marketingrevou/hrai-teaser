@@ -125,16 +125,25 @@ async function serveStatic(req, res) {
     return res.writeHead(403).end('Forbidden');
   }
 
-  try {
-    const file = await readFile(filePath);
+  // Extensionless paths fall back to the .html file, so /hasil?a=… stays clean.
+  // A static host needs the equivalent (Vercel: `cleanUrls`).
+  const candidates = extname(filePath) ? [filePath] : [filePath, `${filePath}.html`];
+
+  for (const candidate of candidates) {
+    let file;
+    try {
+      file = await readFile(candidate);
+    } catch {
+      continue;
+    }
     res.writeHead(200, {
-      'content-type': MIME[extname(filePath)] ?? 'application/octet-stream',
+      'content-type': MIME[extname(candidate)] ?? 'application/octet-stream',
       'cache-control': 'no-cache',
     });
-    res.end(file);
-  } catch {
-    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }).end('Not found');
+    return res.end(file);
   }
+
+  res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }).end('Not found');
 }
 
 const server = createServer(async (req, res) => {

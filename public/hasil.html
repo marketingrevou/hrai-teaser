@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hasil kamu · RevoU</title>
+<meta name="description" content="Jalur dari posisi kamu sekarang ke yang kamu kejar.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* Inlined ahead of app.css so the first paint is never a white flash. The
+     loading scene opens on the same deep blue as the curtain that covered the
+     chat on the way out, so the navigation reads as one continuous move. */
+  :root {
+    --c-blue: #293ff5;
+    --c-blue-deep: #052699;
+    --c-yellow: #ffde3d;
+    --sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--c-blue-deep);
+    color: #fff;
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+</style>
+<style>
+  :root {
+    --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E");
+  }
+
+  html, body { height: auto; }
+  body {
+    background:
+      radial-gradient(55% 46% at 0% 100%, rgba(0, 218, 201, 0.30) 0%, rgba(0, 218, 201, 0.10) 55%, rgba(0, 218, 201, 0) 100%),
+      radial-gradient(48% 52% at 100% 6%, rgba(255, 15, 76, 0.24) 0%, rgba(255, 15, 76, 0.08) 55%, rgba(255, 15, 76, 0) 100%),
+      radial-gradient(70% 60% at 50% 34%, rgba(17, 106, 248, 0.45) 0%, rgba(41, 63, 245, 0.22) 55%, rgba(41, 63, 245, 0) 100%),
+      var(--c-blue);
+    background-attachment: fixed;
+  }
+
+  /* Nothing scrolls until the deck hands over to the finale. */
+  html:has(#deck[data-show='true']), html:has(#loader:not([data-done='true'])) { overflow: hidden; }
+
+  /* ---------- Scene 0: the loader ---------- */
+
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 26px;
+    padding: 32px 24px calc(34px + env(safe-area-inset-bottom));
+    max-width: 620px;
+    margin: 0 auto;
+    background: var(--c-blue-deep);
+    transition: opacity 0.5s ease;
+  }
+  .loader[data-done='true'] { opacity: 0; pointer-events: none; }
+
+  .loader h1 {
+    margin: 0;
+    font-size: clamp(26px, 6.6vw, 34px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    max-width: 16ch;
+  }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 13px; }
+  .steps li {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 15px;
+    line-height: 1.35;
+    color: var(--muted-2);
+    opacity: 0.4;
+    transition: opacity 0.35s ease, color 0.35s ease;
+  }
+  .steps li[data-state='active'] { opacity: 1; color: var(--text); }
+  .steps li[data-state='done'] { opacity: 1; color: var(--muted); }
+
+  /* One mark, three states: empty ring, pulsing ring, filled tick. */
+  .steps .mark {
+    flex: none;
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--hair-strong);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .steps li[data-state='active'] .mark {
+    border-color: var(--c-yellow);
+    animation: ring 1.15s ease-in-out infinite;
+  }
+  .steps li[data-state='done'] .mark {
+    background: var(--c-yellow);
+    border-color: var(--c-yellow);
+  }
+  .steps li[data-state='done'] .mark::after {
+    content: '';
+    position: absolute;
+    left: 5px; top: 2px;
+    width: 4px; height: 8px;
+    border: solid var(--c-yellow-ink);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  @keyframes ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 222, 61, 0.35); }
+    50% { box-shadow: 0 0 0 5px rgba(255, 222, 61, 0); }
+  }
+
+  .loader .progress { margin: 0; opacity: 1; }
+  .loader .progress i { transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* ---------- Scenes 1..n: one beat per screen ---------- */
+
+  .deck {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: none;
+    cursor: pointer;
+  }
+  .deck[data-show='true'] { display: block; }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 64px 24px calc(86px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.45s ease, visibility 0.45s;
+  }
+  .scene[data-active='true'] { opacity: 1; visibility: visible; }
+
+  /* Each scene's contents rise in once the scene itself is up. */
+  .scene[data-active='true'] > * {
+    animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .scene[data-active='true'] > :nth-child(2) { animation-delay: 0.12s; }
+  .scene[data-active='true'] > :nth-child(3) { animation-delay: 0.24s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .scene .head {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-yellow);
+    margin: 0;
+  }
+  .scene .body {
+    margin: 0;
+    font-size: clamp(19px, 5vw, 24px);
+    font-weight: 500;
+    line-height: 1.42;
+    letter-spacing: -0.012em;
+    color: var(--text);
+  }
+
+  /* The opening scene: the path, then what it takes to walk it. The two used to
+     be separate beats; they share a screen because the gap only means anything
+     while the two ends of the path are still in view. The path type is sized
+     down from a full-screen headline to make room for the paragraph under it. */
+  .scene .path { display: grid; gap: 13px; }
+
+  .scene .leg .lbl {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-yellow);
+  }
+  .scene .leg .val {
+    display: block;
+    margin-top: 5px;
+    font-size: clamp(24px, 6.4vw, 34px);
+    font-weight: 800;
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+  }
+  .scene .drop {
+    margin: 0;
+    color: var(--c-yellow);
+    font-size: 24px;
+    line-height: 1;
+  }
+  .scene .drop::before { content: '↓'; }
+
+  /* The hairline is what keeps this one scene and not two stacked ones. */
+  .scene .gap {
+    padding-top: 20px;
+    border-top: 1px solid var(--hair);
+  }
+  .scene .gap .head { margin-bottom: 12px; }
+  .scene .gap .body { font-size: clamp(17px, 4.4vw, 21px); }
+
+  /* Deck chrome: how far in you are, and how to move on. */
+  .dots {
+    position: absolute;
+    top: 30px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+  }
+  .dots i {
+    width: 22px;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--hair);
+    transition: background 0.3s ease;
+  }
+  .dots i[data-on='true'] { background: var(--c-yellow); }
+
+  .hint {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: calc(30px + env(safe-area-inset-bottom));
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: var(--muted-2);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .hint[data-show='true'] { opacity: 1; }
+
+  /* The arrow is the affordance; the text only names it. It points right rather
+     than down because a tap advances the deck, it does not scroll the page — and
+     it is absent on the finale, which is the one screen with nothing after it. */
+  .hint::after {
+    content: '';
+    flex: none;
+    width: 15px;
+    height: 15px;
+    background: var(--c-yellow);
+    -webkit-mask: var(--arrow) center / contain no-repeat;
+    mask: var(--arrow) center / contain no-repeat;
+  }
+  .hint[data-show='true']::after { animation: nudge 2.2s ease-in-out infinite; }
+  @keyframes nudge {
+    0%, 100% { transform: none; }
+    50% { transform: translateX(4px); }
+  }
+
+  /* ---------- Final scene: the program ---------- */
+
+  .finale { display: none; position: relative; }
+  .finale[data-show='true'] { display: block; }
+
+  /* The above-the-fold treatment lifted from the Open House landing page
+     (01. Openhouse/human-capital, .hc-glow--hero + .hc-arcs), so the program
+     lands on the same surface the visitor meets when they follow the CTA. It
+     covers the first screen only — the detail below stays on the page's own
+     background, the way the landing page drops its hero glow after the fold.
+     The blurred Figma ellipses are CSS radial-gradients there and here; the
+     ring motif is the real exported vector. */
+  /* The wrapper is what bounds the treatment: it tracks the stage's real height,
+     so a headline that grows past one screen extends the graphics with it
+     instead of leaving a seam where a fixed 100svh would have stopped. */
+  .hero-wrap { position: relative; overflow: clip; }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--c-blue);
+    pointer-events: none;
+  }
+  .hero-bg .glow {
+    position: absolute;
+    inset: 0;
+    background:
+      /* cyan bloom, bottom-left corner */
+      radial-gradient(58% 52% at -2% 96%,
+        rgba(0,218,201,0.62) 0%, rgba(0,218,201,0.40) 34%,
+        rgba(0,218,201,0.16) 62%, rgba(0,218,201,0) 100%),
+      /* cyan bloom, right flank */
+      radial-gradient(48% 58% at 103% 66%,
+        rgba(0,218,201,0.55) 0%, rgba(6,187,215,0.34) 36%,
+        rgba(6,187,215,0.13) 64%, rgba(6,187,215,0) 100%),
+      /* faint cyan wash, upper-left edge */
+      radial-gradient(34% 40% at -6% 16%,
+        rgba(0,218,201,0.30) 0%, rgba(0,218,201,0.10) 55%, rgba(0,218,201,0) 100%),
+      /* electric blue core, keeps the centre saturated behind the headline */
+      radial-gradient(70% 62% at 52% 36%,
+        rgba(17,106,248,0.55) 0%, rgba(41,63,245,0.30) 48%, rgba(41,63,245,0) 100%);
+  }
+  .hero-bg .arcs {
+    position: absolute;
+    left: 50%; top: 50%; translate: -50% -50%;
+    width: max(1700px, 190%);
+    aspect-ratio: 1;
+    background: url('bg-arcs.svg') no-repeat center / contain;
+    opacity: 0.6;
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 22px;
+    padding: 56px 22px calc(48px + env(safe-area-inset-bottom));
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .stage > * { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .stage > :nth-child(2) { animation-delay: 0.14s; }
+  .stage > :nth-child(3) { animation-delay: 0.3s; }
+  .stage > :nth-child(4) { animation-delay: 0.46s; }
+
+  /* The landing page's hero pill: solid navy, 12px radius, wide tracking. Its
+     label there is two words; this one carries a metadata line, so the tracking
+     is eased off from 0.21em and the case left alone to keep it one line. */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 20px;
+    border-radius: 12px;
+    background: var(--c-blue-deep);
+    box-shadow: 0 10px 26px -14px rgba(3, 17, 90, 0.8);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.92);
+  }
+  .pill::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--c-yellow);
+    flex: none;
+  }
+
+  .stage h1 {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: clamp(34px, 8.4vw, 76px);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+    max-width: 14ch;
+  }
+  .stage h1 .hl { color: var(--c-yellow); }
+
+  .stage .sub {
+    margin: 0;
+    font-size: clamp(15.5px, 3.6vw, 19px);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 46ch;
+  }
+
+  .stage .cta {
+    display: inline-block;
+    text-decoration: none;
+    background: var(--cta-grad);
+    color: #fff;
+    border-radius: 999px;
+    padding: 16px 38px;
+    font-size: 16.5px;
+    font-weight: 700;
+    box-shadow: 0 16px 40px -12px rgba(255, 15, 76, 0.65);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .stage .cta:hover { transform: translateY(-2px); box-shadow: 0 22px 50px -12px rgba(255, 15, 76, 0.75); }
+
+  /* Below the fold: the detail the hero deliberately leaves out. */
+  .detail {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 0 22px calc(48px + env(safe-area-inset-bottom));
+  }
+  .detail .meta {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-yellow);
+    margin-bottom: 16px;
+  }
+  .detail ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .detail li {
+    position: relative;
+    padding-left: 22px;
+    font-size: 16px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.88);
+  }
+  .detail li::before {
+    content: '';
+    position: absolute;
+    left: 2px; top: 9px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--c-yellow);
+  }
+  .detail .foot { text-align: center; padding-top: 34px; }
+  .detail .foot a {
+    font-size: 13px;
+    color: var(--muted-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .detail .foot a:hover { color: var(--text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .steps li[data-state='active'] .mark { animation: none; }
+    .hint[data-show='true']::after { animation: none; }
+    .scene[data-active='true'] > *, .stage > * { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Scene 0 — held while the path is assembled. Never names the program. -->
+<section class="loader" id="loader" data-done="false" aria-live="polite">
+  <img src="revou-logo.svg" alt="RevoU" class="hero-logo">
+  <h1 id="loading-headline"></h1>
+  <ul class="steps" id="steps"></ul>
+  <div class="progress" data-show="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="loading-bar"></i></div>
+</section>
+
+<!-- Scenes 1..n — the path, then each block, one beat per screen. -->
+<div class="deck" id="deck" data-show="false" role="button" tabindex="0" aria-label="Lanjut ke bagian berikutnya">
+  <div class="dots" id="dots" aria-hidden="true"></div>
+  <div id="scenes"></div>
+  <p class="hint" id="hint" data-show="false"></p>
+</div>
+
+<!-- Final scene — the program, above the fold, with the detail below it. -->
+<main class="finale" id="finale" data-show="false">
+  <div class="hero-wrap">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="glow"></div>
+      <div class="arcs"></div>
+    </div>
+    <section class="stage" id="stage"></section>
+  </div>
+  <section class="detail" id="detail"></section>
+</main>
+
+<script type="module">
+import { QUESTIONS, RESULT, REVEAL } from './quiz-data.js';
+
+const $ = (id) => document.getElementById(id);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 60) : ms));
+
+/* ---------- answers from the URL ---------- */
+
+// The URL is the source of truth, so refresh, back/forward and a shared link all
+// work. Indices only — no personal data — and the server re-derives everything
+// from its own table, so a hand-edited URL cannot forge a result.
+const raw = new URL(location.href).searchParams.get('a') ?? '';
+const answers = raw.split('-').map(Number);
+const valid =
+  answers.length === 4 &&
+  answers.every((n) => Number.isInteger(n) && n >= 0 && n < 10) &&
+  // The non-HR exit never reaches this page; it is answered in the chat.
+  !QUESTIONS[0].options[answers[0]]?.exit &&
+  answers.every((n, i) => Boolean(QUESTIONS[i].options[n]));
+
+if (!valid) location.replace('/');
+
+const key = answers.join('-');
+
+/* ---------- shared session id (see index.html) ---------- */
+
+const session = (() => {
+  const k = 'hrp:sid';
+  let id = null;
+  try { id = sessionStorage.getItem(k); } catch { /* private mode */ }
+  if (!id) {
+    id = (crypto.randomUUID?.() ?? String(Date.now())).slice(0, 8);
+    try { sessionStorage.setItem(k, id); } catch { /* ignore */ }
+  }
+  return id;
+})();
+
+function track(payload) {
+  const body = JSON.stringify({ session, ...payload });
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon('/api/track', new Blob([body], { type: 'application/json' }));
+  } else {
+    fetch('/api/track', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(() => {});
+  }
+}
+
+/* ---------- data ---------- */
+
+const cacheKey = `hrp:res:${key}`;
+
+/** Prefetched by the chat, cached here on refresh, fetched fresh on a deep link. */
+async function loadResult() {
+  try {
+    const hit = sessionStorage.getItem(cacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch { /* ignore */ }
+
+  try {
+    const r = await fetch('/api/reveal', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ answers }),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* ignore */ }
+    return data;
+  } catch {
+    // The reveal still runs: the path comes from the local table and the two
+    // generated scenes are simply left out.
+    return null;
+  }
+}
+
+/* ---------- scene 0 ---------- */
+
+$('loading-headline').textContent = REVEAL.loadingHeadline;
+$('hint').textContent = REVEAL.advance;
+
+const stepEls = REVEAL.steps.map((text, i) => {
+  const li = document.createElement('li');
+  li.dataset.state = i === 0 ? 'active' : 'idle';
+  li.innerHTML = '<span class="mark" aria-hidden="true"></span>';
+  li.append(document.createTextNode(text));
+  return li;
+});
+$('steps').replaceChildren(...stepEls);
+
+function setBar(pct) {
+  $('loading-bar').style.width = `${pct}%`;
+  $('loading-bar').parentElement.setAttribute('aria-valuenow', String(Math.round(pct)));
+}
+
+/**
+ * Walks the steps on a fixed cadence, then holds on the last one until the data
+ * is in. Holding is the honest part: if the model call is cold the beat
+ * stretches instead of the page claiming to be finished.
+ */
+async function playLoader(pending) {
+  const last = stepEls.length - 1;
+  setBar(6);
+
+  for (let i = 0; i < last; i += 1) {
+    await wait(900);
+    stepEls[i].dataset.state = 'done';
+    stepEls[i + 1].dataset.state = 'active';
+    setBar(((i + 1) / stepEls.length) * 100);
+  }
+
+  // Hard ceiling so a hung request can never strand the visitor on the loader.
+  const data = await Promise.race([pending, wait(9000).then(() => null)]);
+
+  await wait(400);
+  stepEls[last].dataset.state = 'done';
+  setBar(100);
+  await wait(500);
+  return data;
+}
+
+/* ---------- the deck ---------- */
+
+function scene(build) {
+  const s = document.createElement('section');
+  s.className = 'scene';
+  s.dataset.active = 'false';
+  build(s);
+  return s;
+}
+
+function buildScenes(data) {
+  const role = QUESTIONS[0].options[answers[0]];
+  const aspiration = QUESTIONS[3].options[answers[3]];
+  const roleLabel = data?.role_label ?? role.path_label ?? role.label;
+  const target = data?.aspiration_to ?? aspiration.aspiration_to;
+
+  const list = [];
+
+  // 1. The path the loader said it was assembling, and — on the same screen —
+  //     what it takes to walk it. Read together: the gap is only legible while
+  //     both ends of the path are still on screen. The gap half is dropped if
+  //     the model call failed, leaving the path alone.
+  list.push(scene((s) => {
+    const gap = data?.gap_body
+      ? `<div class="gap">
+           <p class="head">${escapeHtml(RESULT.gapHeading)}</p>
+           <p class="body">${escapeHtml(data.gap_body)}</p>
+         </div>`
+      : '';
+    s.innerHTML = `
+      <div class="path">
+        <div class="leg">
+          <span class="lbl">${escapeHtml(RESULT.pathNowLabel)}</span>
+          <span class="val">${escapeHtml(roleLabel)}</span>
+        </div>
+        <p class="drop" aria-hidden="true"></p>
+        <div class="leg">
+          <span class="lbl">${escapeHtml(RESULT.pathTargetLabel)}</span>
+          <span class="val">${escapeHtml(target)}</span>
+        </div>
+      </div>${gap}`;
+  }));
+
+  // 2. Tentang AI.
+  if (data?.ai_body) {
+    list.push(scene((s) => {
+      s.innerHTML = `
+        <p class="head">${escapeHtml(RESULT.aiHeading)}</p>
+        <p class="body">${escapeHtml(data.ai_body)}</p>`;
+    }));
+  }
+
+  // 3. The bridge into the program.
+  list.push(scene((s) => {
+    s.innerHTML = `<p class="body">${escapeHtml(RESULT.bridge)}</p>`;
+  }));
+
+  return list;
+}
+
+function renderFinale() {
+  const c = RESULT.card;
+  $('stage').innerHTML = `
+    <span class="pill">${escapeHtml(c.pill)}</span>
+    <h1>${escapeHtml(c.headline)} <span class="hl">${escapeHtml(c.headlineHighlight)}</span></h1>
+    <p class="sub">${escapeHtml(c.sub)}</p>
+    <a class="cta" href="${c.ctaHref}" target="_blank" rel="noopener">${escapeHtml(c.cta)}</a>`;
+  $('stage').querySelector('.cta').addEventListener('click', () => track({ event: 'oh_click', oh_clicked: true }));
+
+  $('detail').innerHTML = `
+    <span class="meta">${escapeHtml(c.meta)}</span>
+    <ul>${c.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
+    <p class="foot"><a href="/">${escapeHtml(REVEAL.restart)}</a></p>`;
+}
+
+/** Advances one scene per tap, then hands over to the finale. */
+function runDeck(scenes) {
+  $('scenes').replaceChildren(...scenes);
+  $('dots').replaceChildren(...scenes.map(() => document.createElement('i')));
+
+  let i = -1;
+  let locked = true;
+
+  const show = (n) => {
+    scenes.forEach((s, k) => { s.dataset.active = String(k === n); });
+    [...$('dots').children].forEach((d, k) => { d.dataset.on = String(k <= n); });
+  };
+
+  const next = () => {
+    if (locked) return;
+    if (i + 1 < scenes.length) return step(i + 1);
+    locked = true;
+    $('hint').dataset.show = 'false';
+    $('deck').dataset.show = 'false';
+    $('finale').dataset.show = 'true';
+    track({ event: 'complete', completed: true });
+  };
+
+  // The hint only appears once the scene has had a moment to be read, so it
+  // never rushes the beat it is sitting under.
+  const step = (n) => {
+    i = n;
+    locked = true;
+    $('hint').dataset.show = 'false';
+    show(n);
+    setTimeout(() => { locked = false; $('hint').dataset.show = 'true'; }, reduced ? 0 : 1400);
+  };
+
+  $('deck').addEventListener('click', next);
+  $('deck').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') { e.preventDefault(); next(); }
+  });
+
+  $('deck').dataset.show = 'true';
+  $('deck').focus({ preventScroll: true });
+  step(0);
+}
+
+/* ---------- run ---------- */
+
+if (valid) {
+  const data = await playLoader(loadResult());
+  renderFinale();
+  runDeck(buildScenes(data));
+  $('loader').dataset.done = 'true';
+  setTimeout(() => $('loader').remove(), reduced ? 0 : 600);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+</body>
+</html>

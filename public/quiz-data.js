@@ -67,14 +67,43 @@ export const QUESTIONS = [
   },
 ];
 
+// The closing beat of the chat. Says nothing about the result on purpose: the
+// point of the handoff is that the payoff is worth opening, not that it has
+// already been given away.
+export const HANDOFF = {
+  lines: [
+    'Empat jawaban. Itu cukup.',
+    'Jalur kamu sudah kelihatan. Sebentar.',
+  ],
+};
+
+// The reveal page (/hasil). `steps` never names the program: the name is the
+// payoff and must not leak into the loading scene.
+export const REVEAL = {
+  loadingHeadline: 'Sebentar, saya susun jalurnya.',
+  steps: [
+    'Membaca empat jawaban kamu',
+    'Menempatkan posisi kamu sekarang',
+    'Mengukur jarak ke yang kamu kejar',
+    'Menyusun jalurnya',
+  ],
+  advance: 'Ketuk untuk lanjut',
+  restart: 'Ulangi dari awal',
+};
+
 export const RESULT = {
-  intro: 'Sebentar, saya susun jalurnya.',
   pathNowLabel: 'Posisi kamu saat ini',
   pathTargetLabel: 'Yang kamu kejar',
   gapHeading: 'Yang dibutuhkan untuk sampai ke sana',
   aiHeading: 'Tentang AI',
   bridge: 'Ini program yang dibangun untuk lompatan itu.',
+  // The final scene of the reveal. `headline` is set uppercase by CSS, so it is
+  // stored in sentence case and stays readable to screen readers.
   card: {
+    pill: 'Strategic HR with AI · 15 weeks · Online',
+    headline: 'The first HR program built for',
+    headlineHighlight: 'the AI era.',
+    sub: 'A 15-week program that takes HR professionals from execution to strategy, with AI built into how you work.',
     name: 'Strategic HR with AI',
     meta: '15 WEEKS · ONLINE · STARTS SEPTEMBER 2026',
     bullets: [

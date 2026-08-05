@@ -6,6 +6,48 @@ what they're aiming for, then the program reveal and Open House CTA.
 
 Indonesian, informal "kamu". Mobile-first — the traffic source is a social post.
 
+## The two screens
+
+The chat ends the moment the fourth question is answered. It says nothing about
+the result — two lines, no button — then a curtain closes over it and it takes
+itself to **`/hasil?a=1-2-1-0`**. No second decision to make: the visitor already
+chose by finishing the quiz.
+
+Splitting it this way is the point: in one document the program card was just
+four more chat bubbles, carrying the same weight as an acknowledgement. The hero
+withholds the program name deliberately, and the reveal now has a screen of its
+own to be the payoff on.
+
+`/hasil` plays as a deck, one beat per screen, advancing on a tap:
+
+| Scene | What |
+| --- | --- |
+| 0 | Loading. Four steps tick over while the path is assembled |
+| 1 | The path, and under a hairline, `Yang dibutuhkan untuk sampai ke sana` |
+| 2 | `Tentang AI` |
+| 3 | `Ini program yang dibangun untuk lompatan itu.` |
+| 4 | The program. Full screen, centred, above the fold, with the detail below it |
+
+Scene 1 carries the gap copy with the path because the gap only reads while both
+ends of the path are still on screen.
+
+Advancing is a tap anywhere, or Enter / Space / →. Each scene locks for 1.4s
+before it will move on and before the *Ketuk untuk lanjut* hint appears, so a
+stray tap can never skip a beat the visitor has not read yet. Under
+`prefers-reduced-motion` the lock drops to zero and the transitions go instant.
+
+The answer indices ride in the URL, so refresh, back/forward and a shared link all
+reproduce the same result. They are indices only, and `/api/reveal` re-derives
+everything from the canonical table, so a hand-edited URL cannot forge a result —
+it fails the same validation a forged POST would. The chat fires the `/api/reveal`
+request as soon as the last question is answered and stashes it in
+`sessionStorage`, so by the time the loading scene plays the copy is usually
+already local: the four steps are a designed beat, not a spinner. The last step
+holds until the data is actually in, with a 9s ceiling, so a cold model call
+stretches the beat instead of the page claiming to be finished.
+
+The non-HR exit stays entirely in the chat. It is not a program reveal.
+
 ## Run
 
 ```sh
@@ -133,12 +175,14 @@ segment sales should get.
 
 | Path | What |
 | --- | --- |
-| `public/index.html` | The whole chat UI — markup, styles, flow |
-| `public/quiz-data.js` | Questions, options, derived variables, result and exit copy. Single source of truth, imported by both browser and server |
+| `public/index.html` | The chat — four questions, then the handoff to `/hasil` |
+| `public/hasil.html` | The reveal — the loading scene and the scene deck that ends on the program |
+| `public/app.css` | Tokens and every shared style. Both pages also inline the tokens and the background so first paint is never a white flash |
+| `public/quiz-data.js` | Questions, options, derived variables, handoff, reveal, result and exit copy. Single source of truth, imported by both browser and server |
 | `lib/generate.js` | System prompt, OpenRouter call, constraint validation, cache |
 | `lib/env.js` | Loads `.env` before any module reads `process.env` |
 | `lib/copy.js` | Static fallback for blocks B and C |
-| `server.js` | Static serving, `/api/reveal`, `/api/track`, `/api/health` |
+| `server.js` | Static serving, `/api/reveal`, `/api/track`, `/api/health`. Extensionless paths fall back to `.html`, so `/hasil` resolves — a static host needs the equivalent (Vercel: `cleanUrls`) |
 | `scripts/check-copy.mjs` | Constraint check across all combinations |
 
 ## Still open before launch (spec §6)
