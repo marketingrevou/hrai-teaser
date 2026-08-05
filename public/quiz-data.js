@@ -6,7 +6,7 @@ export const HERO = {
   eyebrow: 'Program baru RevoU · September 2026',
   headline: 'Program HR pertama yang dibangun untuk',
   headlineHighlight: 'era AI.',
-  cta: 'Tes kecocokan kamu',
+  cta: 'Eksplor program ini',
 };
 
 export const QUESTIONS = [
