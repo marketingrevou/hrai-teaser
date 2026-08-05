@@ -341,19 +341,18 @@ async function showExit() {
   setStepLabel('Hasil');
   clearOptions();
 
-  await say(EXIT.heading, { pause: 640 });
-  const r = row('bot', { stacked: true });
-  const card = document.createElement('div');
-  card.className = 'card exit';
-  card.innerHTML = `
-    <p>${escapeHtml(EXIT.body1)}</p>
-    <p>${escapeHtml(EXIT.body2)}</p>
-    <div class="divider">${escapeHtml(EXIT.dividerHeading)}
-      <a class="cta" href="${EXIT.ctaHref}">${escapeHtml(EXIT.cta)}</a>
-    </div>`;
-  card.querySelector('.cta').addEventListener('click', () =>
+  await say(EXIT.line1, { pause: 640 });
+
+  // The CTA rides inside the second bubble so the redirect stays part of the
+  // same sentence rather than becoming a separate panel.
+  const b = await say(EXIT.line2, { pause: 560, stacked: true });
+  const cta = document.createElement('a');
+  cta.className = 'cta';
+  cta.href = EXIT.ctaHref;
+  cta.textContent = EXIT.cta;
+  cta.addEventListener('click', () =>
     track({ event: 'other_programs_click', other_programs_clicked: true }));
-  r.append(card);
+  b.append(cta);
   scrollDown();
 
   track({ event: 'exit', exited_non_hr: true });
@@ -367,11 +366,6 @@ function offerRestart() {
   btn.textContent = 'Ulangi dari awal';
   btn.addEventListener('click', () => location.reload());
   options.replaceChildren(btn);
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 </script>
 </body>

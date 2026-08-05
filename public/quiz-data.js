@@ -150,16 +150,13 @@ export const RESULT = {
   },
 };
 
+// Two chat lines, not a card: the answer is a no, and a no is shorter than an
+// explanation. The first line is the reason, the second is where to go instead.
 export const EXIT = {
-  heading: 'Program ini butuh dasar HR.',
-  body1:
-    'Strategic HR with AI dibangun untuk orang yang sudah mengerjakan HR. Materinya langsung masuk ke keputusan: desain organisasi, kalibrasi performa, struktur gaji, efisiensi biaya. Tanpa pernah ada di situasinya, sebagian besar akan terasa mengambang.',
-  body2: 'Kami lebih baik bilang sekarang daripada kamu menyadarinya di minggu ketiga.',
-  dividerHeading: 'RevoU punya program lain yang mungkin lebih cocok.',
+  line1: 'Program ini membutuhkan pengalaman di bidang HR.',
+  line2: 'Temukan program lain RevoU yang lebih cocok untuk kamu.',
   cta: 'Lihat program lain',
-  // TODO(spec §6): destination undecided. If one program is most often the right
-  // next-best fit for this group, link it directly instead of the catalogue.
-  ctaHref: '#program-lain',
+  ctaHref: 'https://revou.co/important-links',
 };
 
 /**
