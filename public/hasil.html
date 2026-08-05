@@ -219,6 +219,65 @@
   .scene .gap .head { margin-bottom: 12px; }
   .scene .gap .body { font-size: clamp(17px, 4.4vw, 21px); }
 
+  /* Three bullets, not a paragraph. The marker is drawn rather than listed so it
+     can be the brand yellow and sit on the first line's optical centre; the text
+     hangs off it instead of wrapping back under it. */
+  ul.body {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 11px;
+  }
+  ul.body li {
+    position: relative;
+    padding-left: 20px;
+  }
+  ul.body li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c-yellow);
+  }
+
+  /* The bridge scene: typed line, filling bar, no tap. The caret is what makes
+     the pause read as something being written rather than as a stall, so it is
+     removed the moment the line is complete. */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* A hidden copy of the finished line holds the box open, so a sentence that
+     wraps onto a second line does not shove the scene upward mid-type. The
+     visible text is laid over it and wraps identically. */
+  .scene .type-line { position: relative; }
+  .scene .type-line .ghost { visibility: hidden; }
+  .scene .type-line .live { position: absolute; inset: 0; }
+
+  .scene .caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 4px;
+    vertical-align: -0.14em;
+    background: var(--c-yellow);
+    animation: blink 1s steps(1, end) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Same bar as the loader's, filling on its own clock: linear, because this one
+     is a countdown to the next screen and must not appear to stall near the end. */
+  .scene .bridge-bar { margin: 4px 0 0; }
+  .scene .bridge-bar i { transition: width var(--fill, 2.8s) linear; }
+
   /* Deck chrome: how far in you are, and how to move on. */
   .dots {
     position: absolute;
@@ -568,10 +627,16 @@ async function playLoader(pending) {
 
 /* ---------- the deck ---------- */
 
-function scene(build) {
+/**
+ * `hint` is what the tap under this scene promises. Left unset it falls back to
+ * the generic "Ketuk untuk lanjut"; naming the next screen instead is worth more
+ * on the beat before a scene the reader has a question about.
+ */
+function scene(build, hint) {
   const s = document.createElement('section');
   s.className = 'scene';
   s.dataset.active = 'false';
+  if (hint) s.dataset.hint = hint;
   build(s);
   return s;
 }
@@ -589,10 +654,11 @@ function buildScenes(data) {
   //     both ends of the path are still on screen. The gap half is dropped if
   //     the model call failed, leaving the path alone.
   list.push(scene((s) => {
-    const gap = data?.gap_body
+    const points = Array.isArray(data?.gap_points) ? data.gap_points : [];
+    const gap = points.length
       ? `<div class="gap">
            <p class="head">${escapeHtml(RESULT.gapHeading)}</p>
-           <p class="body">${escapeHtml(data.gap_body)}</p>
+           <ul class="body">${points.map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
          </div>`
       : '';
     s.innerHTML = `
@@ -607,20 +673,34 @@ function buildScenes(data) {
           <span class="val">${escapeHtml(target)}</span>
         </div>
       </div>${gap}`;
-  }));
+    // Only promise the AI screen when there is one: it is dropped along with the
+    // gap if the model call failed.
+  }, data?.ai_body ? RESULT.aiTease : null));
 
-  // 2. Tentang AI.
+  // 2. What AI changes for them.
   if (data?.ai_body) {
     list.push(scene((s) => {
       s.innerHTML = `
         <p class="head">${escapeHtml(RESULT.aiHeading)}</p>
         <p class="body">${escapeHtml(data.ai_body)}</p>`;
-    }));
+    }, RESULT.programTease));
   }
 
-  // 3. The bridge into the program.
+  // 3. The bridge into the program. This scene plays itself: the line types out,
+  //     a bar fills under it, and the finale opens with no tap. The wait is the
+  //     point — the program lands as a release rather than as one more screen.
+  //     The full line is in the DOM for a screen reader from the start; only the
+  //     visible copy is revealed a character at a time.
   list.push(scene((s) => {
-    s.innerHTML = `<p class="body">${escapeHtml(RESULT.bridge)}</p>`;
+    s.dataset.auto = 'true';
+    s.dataset.text = RESULT.bridge;
+    s.innerHTML = `
+      <p class="body type-line">
+        <span class="sr-only">${escapeHtml(RESULT.bridge)}</span>
+        <span class="ghost" aria-hidden="true">${escapeHtml(RESULT.bridge)}</span>
+        <span class="live" aria-hidden="true"><span class="typed"></span><span class="caret"></span></span>
+      </p>
+      <div class="progress bridge-bar" data-show="true" aria-hidden="true"><i></i></div>`;
   }));
 
   return list;
@@ -635,6 +715,11 @@ function renderFinale() {
     <a class="cta" href="${c.ctaHref}" target="_blank" rel="noopener">${escapeHtml(c.cta)}</a>`;
   $('stage').querySelector('.cta').addEventListener('click', () => track({ event: 'oh_click', oh_clicked: true }));
 }
+
+/* How long the bridge scene holds the reader before the program opens. The bar
+   is the honest part: it says the wait is finite and shows how much is left. */
+const TYPE_MS = 42;   // per character
+const FILL_MS = 2800; // bar, once the line has landed
 
 /** Advances one scene per tap, then hands over to the finale. */
 function runDeck(scenes) {
@@ -659,6 +744,39 @@ function runDeck(scenes) {
     track({ event: 'complete', completed: true });
   };
 
+  /**
+   * The one scene that advances itself. The hint never appears: there is nothing
+   * to tap, and an arrow saying otherwise would be a lie. Taps stay locked out
+   * throughout, so a stray one cannot cut the beat short.
+   */
+  const playAuto = async (s) => {
+    const typed = s.querySelector('.typed');
+    const caret = s.querySelector('.caret');
+    const bar = s.querySelector('.bridge-bar i');
+    const text = s.dataset.text ?? '';
+
+    if (reduced) {
+      typed.textContent = text;
+      caret.remove();
+      bar.style.width = '100%';
+      await wait(900);
+    } else {
+      await wait(420); // let the scene finish rising before the first character
+      for (const ch of text) {
+        typed.textContent += ch;
+        await wait(TYPE_MS);
+      }
+      caret.remove();
+      await wait(220);
+      bar.style.setProperty('--fill', `${FILL_MS}ms`);
+      bar.style.width = '100%';
+      await wait(FILL_MS + 260);
+    }
+
+    locked = false;
+    next();
+  };
+
   // The hint only appears once the scene has had a moment to be read, so it
   // never rushes the beat it is sitting under.
   const step = (n) => {
@@ -666,7 +784,14 @@ function runDeck(scenes) {
     locked = true;
     $('hint').dataset.show = 'false';
     show(n);
-    setTimeout(() => { locked = false; $('hint').dataset.show = 'true'; }, reduced ? 0 : 1400);
+    if (scenes[n].dataset.auto === 'true') return playAuto(scenes[n]);
+    // The label is swapped while the hint is invisible, not during its fade out,
+    // so the two hints never cross-read as one flickering line.
+    setTimeout(() => {
+      locked = false;
+      $('hint').textContent = scenes[n].dataset.hint || REVEAL.advance;
+      $('hint').dataset.show = 'true';
+    }, reduced ? 0 : 1400);
   };
 
   $('deck').addEventListener('click', next);

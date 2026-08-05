@@ -1,7 +1,13 @@
 # Tone guideline — generated reveal copy
 
-Applies to the two model-written blocks on `/hasil`: `gap_body` ("Untuk sampai ke sana")
-and `ai_body` ("Tentang AI").
+Applies to the two model-written blocks on `/hasil`: `gap_points` ("Untuk sampai ke
+sana", three bullets) and `ai_body` ("Bagaimana AI bisa membantumu", one paragraph).
+
+The gap block is bullets, so the rules below read it as one block joined end to end:
+`kamu` has to appear somewhere in the three, not in each one, and an abstraction
+repeated across two bullets is the same repetition R6 bans inside a paragraph. On top
+of that each bullet stands alone — one idea, fourteen words, no bullet that only makes
+sense after the one above it.
 
 **This is implemented, not aspirational.** `lib/tone.js` holds both halves: the
 Indonesian `VOICE_PROMPT` the model reads (§7 below) and the checks its output has to
@@ -38,14 +44,14 @@ konsultan kini bisa diselesaikan secara mandiri."
 
 - `Penggunaan … merupakan pemanfaatan` — two nominalizations bridged by a report-register
   copula. Three words doing the work of one verb: *pakai*.
-- `teknologi ini` — a euphemism for AI on a page whose heading is literally "Tentang AI".
+- `teknologi ini` — a euphemism for AI on a page whose heading is literally about AI.
 - `Lompatan posisi terjadi ketika…` — an event with no agent. Nobody in this sentence does
   anything; a promotion simply *occurs*.
 - `bisa diselesaikan secara mandiri` — passive plus a `secara`-adverb. The reader is not
   even the one doing it.
 - **No `kamu` anywhere.** The reader has been deleted from their own result.
 
-**`gap_body`** — "Pengalaman di bidang business partnering memberikan keluasan sudut
+**`gap_points`**, back when it was one paragraph — "Pengalaman di bidang business partnering memberikan keluasan sudut
 pandang yang sangat kuat. Tuntutan untuk posisi Head of HR berikutnya adalah kedalaman
 analisis di setiap fungsi. Keunggulannya, akses ke pengambil keputusan bukan lagi
 hambatan, melainkan kedalaman jawaban yang kini menjadi pembeda."
@@ -136,15 +142,16 @@ second time, say it in plain words.
 > posisi kamu adalah saat kamu bisa menghitung sendiri dampak biaya dari satu opsi
 > restrukturisasi, pekerjaan yang dulu dibawa ke konsultan.
 
-**`gap_body`** (gen · business partnering · altitude 4 · → Head of HR, ≤55 words) — 52 words:
+**`gap_points`** (gen · business partnering · altitude 4 · → Head of HR, three bullets,
+≤14 words each):
 
-> Kamu sudah biasa membaca satu masalah orang dari sisi bisnisnya, dan itu alasan
-> business partner dipanggil lebih awal. Head of HR menuntut satu hal lagi: angka di
-> balik jawaban itu, dari struktur gaji sampai desain organisasi. Akses ke ruang
-> keputusan sudah kamu punya, jadi pembedanya sekarang seberapa dalam jawaban yang
-> kamu bawa.
+> - Kamu sudah biasa membaca masalah orang dari sisi bisnisnya.
+> - Head of HR minta angkanya juga: struktur gaji sampai desain organisasi.
+> - Akses ke ruang keputusan sudah kamu punya, jadi pembedanya isi jawabanmu.
 
 Same three beats, same constraints, same hard rules. Shorter, and a person is in it.
+The beats were already three, which is why they split into bullets cleanly: what you
+have, what the next level asks, where your room is.
 
 ---
 
@@ -189,28 +196,28 @@ here for review; edit the code, not this copy.
 ```
 # Suara
 
-Tulis seperti Head of HR yang bicara langsung ke satu orang di depannya. Bukan
-paragraf dari deck konsultan.
+Tulis seperti Head of HR yang bicara langsung ke satu orang di depannya. Bukan paragraf
+dari deck konsultan.
 
-Kamu harus jadi subjeknya. Tulis "Kamu sudah biasa membaca masalah orang dari sisi
-bisnisnya", bukan "Pengalaman di bidang itu memberikan keluasan sudut pandang".
-Kata benda abstrak tidak boleh jadi subjek kalimat. Kalau kalimatmu dimulai dengan
-"Pengalaman", "Penggunaan", "Tuntutan", atau "Lompatan", tulis ulang dengan orangnya
-di depan. Setiap blok wajib memuat kata "kamu" minimal sekali.
+Orangnya yang jadi subjek, bukan kata benda. Tulis "Kamu sudah biasa membaca masalah
+orang dari sisi bisnisnya", bukan "Pengalaman di bidang itu memberikan keluasan sudut
+pandang". Kalau kalimatmu dimulai dengan "Pengalaman", "Penggunaan", "Tuntutan", atau
+"Lompatan", tulis ulang dengan orangnya di depan. Setiap blok wajib memuat kata "kamu"
+minimal sekali.
 
 Pakai kata kerja, bukan kata benda bentukan. Tulis "pakai", bukan "penggunaan" atau
 "pemanfaatan". Tulis "menguasai", bukan "penguasaan". Tulis "bisa menganalisis", bukan
 "kemampuan untuk menganalisis". Tulis "yang membedakan", bukan "yang menjadi pembeda".
 
-Yang menuntut adalah levelnya, dan levelnya harus jadi subjek aktif. Jangan "kamu
-harus menguasai angka". Jangan juga "tuntutan level berikutnya adalah penguasaan
-angka". Tulis "Level berikutnya menuntut kamu datang dengan angkanya", atau "Di kursi
-itu, yang ditanya pertama adalah angkanya".
+Yang menuntut adalah levelnya, dan levelnya harus jadi subjek aktif. Jangan "kamu harus
+menguasai angka". Jangan juga "tuntutan level berikutnya adalah penguasaan angka". Tulis
+"Level berikutnya menuntut kamu datang dengan angkanya", atau "Di kursi itu, yang
+ditanya pertama adalah angkanya".
 
-Setiap blok harus menyebut satu hal HR yang konkret: desain organisasi, kalibrasi
-performa, struktur gaji, efisiensi biaya, headcount, turnover, opsi restrukturisasi,
-rencana rekrutmen, job description, direksi. Jangan berhenti di "kedalaman analisis di
-setiap fungsi", sebut analisis apa.
+Sebut satu hal HR yang konkret di setiap blok: desain organisasi, kalibrasi performa,
+struktur gaji, efisiensi biaya, headcount, turnover, opsi restrukturisasi, rencana
+rekrutmen, job description, angka di depan direksi. Jangan berhenti di "kedalaman
+analisis di setiap fungsi", sebut analisis apa.
 
 Kalimat pendek, satu gagasan, maksimum lima belas kata. Sambung dengan "dan", "tapi",
 "karena", "jadi".
@@ -219,8 +226,8 @@ Dilarang: merupakan, melainkan, namun, adapun, oleh karena itu, dengan demikian,
 keunggulannya, secara mandiri, secara signifikan, hal ini, hal tersebut, teknologi ini
 (sebut AI saja), kini (pakai sekarang), terjadi ketika.
 
-Dilarang menguatkan dengan kata: sangat, luar biasa, amat, betul-betul, mumpuni.
-Kalau satu kelebihan butuh kata "sangat", berarti belum kamu jelaskan.
+Dilarang menguatkan dengan kata: sangat, luar biasa, amat, betul-betul, mumpuni. Kalau
+satu kelebihan butuh kata "sangat", berarti belum kamu jelaskan.
 
 Satu kata benda abstrak (kedalaman, keluasan, cakupan, posisi, tuntutan) hanya boleh
 sekali per blok. Yang kedua, sebut dengan kata biasa.
@@ -272,6 +279,15 @@ Once `data/result-copy.json` exists, `generate.js` serves from it and makes no A
 Every string a visitor can see has been read by a person. No latency, no cold start, no
 runtime API dependency. Hand-edit the JSON during review — a human edit outranks the
 regexes, so a rule broken there is logged and still served.
+
+**This layer is currently switched off.** The deployment sets `FROZEN_COPY=off`, so copy
+is generated per visitor and the reviewed file is bypassed even when present. That is a
+deliberate choice, but it means Layers 1 and 2 are the only things standing between the
+model and the reader — and Layer 2 does not block. Since the failure this whole document
+was written about is *grammatically compliant but lifeless*, which every regex in Layer 1
+passes, live mode ships exactly the register §2 catalogues whenever the model reaches for
+it. Read `pregen`'s review file periodically even while serving live, and treat Layer 1
+rejections in the server log as the signal that the prompt needs work.
 
 The review file groups by role so near-identical copy stacks into columns: a formula the
 model is leaning on shows up as a column, not as one bad row. Note that repetition

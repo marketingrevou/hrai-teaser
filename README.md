@@ -23,18 +23,33 @@ own to be the payoff on.
 | Scene | What |
 | --- | --- |
 | 0 | Loading. Three steps tick over while the result is assembled |
-| 1 | The path, and under a hairline, `Untuk sampai ke sana` |
-| 2 | `Tentang AI` |
-| 3 | `Ini program yang dibangun untuk lompatan itu.` |
+| 1 | The path, and under a hairline, `Untuk sampai ke sana` as three bullets |
+| 2 | `Bagaimana AI bisa membantumu` |
+| 3 | `Program ini dirancang khusus untuk membuatmu bisa meraihnya.` — types itself out, a bar fills, no tap |
 | 4 | The program. One screen, centred, nothing after it but the CTA |
 
 Scene 1 carries the gap copy with the path because the gap only reads while both
 ends of the path are still on screen.
 
+The hint is per-scene and names what the tap opens, which is worth more than the
+generic `Ketuk untuk lanjut`: scene 1 reads `Bagaimana AI membantu saya?` and scene 2
+reads `Cari tahu lebih lanjut`. Scene 1 falls back to the generic label when the AI
+scene is absent, since it is dropped along with the generated copy if the model call
+failed.
+
 Advancing is a tap anywhere, or Enter / Space / →. Each scene locks for 1.4s
 before it will move on and before the *Ketuk untuk lanjut* hint appears, so a
 stray tap can never skip a beat the visitor has not read yet. Under
 `prefers-reduced-motion` the lock drops to zero and the transitions go instant.
+
+Scene 3 is the exception: it advances itself. The line types out a character at a
+time, a bar fills under it, and the program opens on its own — the wait is what
+makes the last screen land as a release rather than as one more tap. Taps stay
+locked out for its whole run, and no hint appears, because there is nothing to tap.
+A hidden copy of the finished line holds the paragraph box open so the type-on does
+not shove the scene around, and the full sentence is in the DOM from the first frame
+for anyone reading with a screen reader. Reduced motion gets the whole line at once
+and a short hold.
 
 The answer indices ride in the URL, so refresh, back/forward and a shared link all
 reproduce the same result. They are indices only, and `/api/reveal` re-derives
@@ -64,12 +79,13 @@ npm start
 ```
 
 `GET /api/health` reports whether the model path is live, which model is
-configured, and how many variants are cached. `npm test` checks the fallback copy
-against the spec's hard constraints across all 576 combinations.
+configured, how many variants are cached, and which of the two serving modes below
+is in force (`frozen_copy`). `npm test` checks the fallback copy against the spec's
+hard constraints across all 576 combinations.
 
 ## How the AI part works
 
-Blocks B (`Untuk sampai ke sana`) and C (`Tentang AI`) on the
+Blocks B (`Untuk sampai ke sana`) and C (`Bagaimana AI bisa membantumu`) on the
 result screen are generated per visitor through **OpenRouter**, defaulting to
 `google/gemini-3.6-flash`. Everything else is fixed copy from the spec.
 
@@ -77,9 +93,23 @@ result screen are generated per visitor through **OpenRouter**, defaulting to
 validator in `lib/tone.js` mechanically rejects the register that keeps leaking in
 (nominalizations, report connectors, copy with no `kamu` in it), and a rejected draft
 gets one correction before losing to the fallback. Because 576 answer paths collapse to
-only 448 unique generations, the last layer is a person: `node scripts/pregen.mjs`
+only 448 unique generations, the last layer can be a person: `node scripts/pregen.mjs`
 writes all 448 plus a review file, and once `data/result-copy.json` exists the server
 serves reviewed strings and calls no API at all.
+
+**Two serving modes, and the choice is explicit.** `generateResultCopy` resolves in
+order: reviewed file → in-process cache → live call (two attempts, the second told
+which rule the first broke) → static fallback in `lib/copy.js`.
+
+- **Live (`FROZEN_COPY=off`, the configured mode)** — the reviewed file is bypassed
+  even if present, so every variant is written by the model on first request and
+  memoized for the rest of that process. Costs a ~5s cold call per new variant, and
+  copy reaches visitors having passed only the validator, not a person.
+- **Reviewed (unset)** — prefers `data/result-copy.json` whenever it exists.
+
+The flag exists because the modes are otherwise impossible to tell apart: with no
+reviewed file on disk, live generation looks identical to a deliberate decision, and
+running pregen once would silently flip a deployment to static.
 
 **Model choice was measured, not assumed** — same 10 combinations, same prompt:
 
@@ -118,7 +148,8 @@ regresses, step sideways within the Gemini family or to `anthropic/claude-sonnet
 - **`lib/generate.js`** holds the system prompt — the spec's §4 rules translated
   into Indonesian instructions — and requests **structured outputs**
   (`response_format: json_schema`, `strict: true`), so the response is always
-  exactly `{gap_body, ai_body}` and never prose wrapping the copy. Parsing is
+  exactly `{gap_points, ai_body}` — three bullet strings and one paragraph, never
+  prose wrapping the copy or a paragraph the page would have to split. Parsing is
   still tolerant of a stray code fence, because strict-mode enforcement varies by
   provider on OpenRouter.
 - **The client never sees the key.** The browser posts four answer *indices*;
@@ -208,8 +239,8 @@ segment sales should get.
    summary with no reason to attend attached.
 4. **No capture on the exit screen.** Decide whether non-HR visitors are worth
    anything.
-5. **Program page must be live** before this ships — "Ini program yang dibangun
-   untuk lompatan itu" points at it.
+5. **Program page must be live** before this ships — "Program ini dirancang khusus
+   untuk membuatmu bisa meraihnya" points at it.
 
 Also unresolved by this build: the analytics sink is a local file, and the result
 cache is per-process.

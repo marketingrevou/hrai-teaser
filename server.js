@@ -87,7 +87,7 @@ async function handleReveal(req, res) {
   return json(res, 200, {
     role_label: vars.role_label,
     aspiration_to: vars.aspiration_to,
-    gap_body: copy.gap_body,
+    gap_points: copy.gap_points,
     ai_body: copy.ai_body,
     source: copy.source ?? 'model',
   });
@@ -165,10 +165,23 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`hr-path-teaser → http://localhost:${PORT}`);
+  const { frozen, frozen_copy } = frozenStats();
   console.log(
     apiEnabled
       ? `OpenRouter: enabled → ${MODEL}`
       : 'OpenRouter: no OPENROUTER_API_KEY found — serving reviewed static result copy.\n' +
           '  Set OPENROUTER_API_KEY in .env to switch on generated copy.',
   );
+  // Which of the two serving modes is live is the thing most worth knowing at
+  // boot, and `frozen: 0` on its own does not say whether that was chosen.
+  if (apiEnabled) {
+    console.log(
+      frozen_copy === 'off'
+        ? '  Result copy: generated per visitor (FROZEN_COPY=off — reviewed file bypassed).'
+        : frozen > 0
+          ? `  Result copy: ${frozen} reviewed variants; no API call on a hit.`
+          : '  Result copy: generated per visitor — no data/result-copy.json yet.\n' +
+            '  Set FROZEN_COPY=off to keep it that way once pregen has run.',
+    );
+  }
 });

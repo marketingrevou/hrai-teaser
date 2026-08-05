@@ -125,8 +125,19 @@ export const RESULT = {
   // clear of "yang diminta di level berikutnya" too: that is how the generated
   // and fallback bodies under this heading open.
   gapHeading: 'Untuk sampai ke sana',
-  aiHeading: 'Tentang AI',
-  bridge: 'Ini program yang dibangun untuk lompatan itu.',
+  // The heading asks the question the next scene answers, so the body under it
+  // can stay a plain paragraph instead of having to set up its own topic.
+  aiHeading: 'Bagaimana AI bisa membantumu',
+  // Sits under the gap scene in place of the generic "Ketuk untuk lanjut": the
+  // tap is worth more when the hint names what the next screen is about, and it
+  // is the reader's own question, in their words.
+  aiTease: 'Bagaimana AI membantu saya?',
+  // And the hint under the AI scene, which leads into the program itself.
+  programTease: 'Cari tahu lebih lanjut',
+  // The last beat before the program. It types itself out and a bar fills under
+  // it, so the scene needs no tap: the line is the wind-up and the finale is the
+  // release. Written as one sentence for that reason.
+  bridge: 'Program ini dirancang khusus untuk membuatmu bisa meraihnya.',
   // The final scene of the reveal, one screen and nothing after it. The curriculum
   // detail that used to sit below the fold here is the Open House's job to sell,
   // so the scene ends on the CTA instead of arguing past it.
