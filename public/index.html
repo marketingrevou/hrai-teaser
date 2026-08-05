@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Program HR pertama yang dibangun untuk era AI · RevoU</title>
-<meta name="description" content="Jawab empat pertanyaan singkat dan lihat jalur dari posisi kamu sekarang ke yang kamu kejar.">
+<meta name="description" content="Jawab empat pertanyaan singkat dan lihat posisi kamu sekarang dan yang diperlukan untuk mencapai tujuan kamu.">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -288,8 +288,8 @@ async function advance(step, { repeat = false } = {}) {
     state.step = step + 1;
     return showExit();
   }
-  if (opt.ack) {
-    await say(opt.ack, { pause: 460 });
+  if (q.ack) {
+    await say(q.ack, { pause: 460 });
     if (stale()) return;
   }
 

@@ -22,11 +22,11 @@ own to be the payoff on.
 
 | Scene | What |
 | --- | --- |
-| 0 | Loading. Four steps tick over while the path is assembled |
-| 1 | The path, and under a hairline, `Yang dibutuhkan untuk sampai ke sana` |
+| 0 | Loading. Three steps tick over while the result is assembled |
+| 1 | The path, and under a hairline, `Untuk sampai ke sana` |
 | 2 | `Tentang AI` |
 | 3 | `Ini program yang dibangun untuk lompatan itu.` |
-| 4 | The program. Full screen, centred, above the fold, with the detail below it |
+| 4 | The program. One screen, centred, nothing after it but the CTA |
 
 Scene 1 carries the gap copy with the path because the gap only reads while both
 ends of the path are still on screen.
@@ -42,7 +42,7 @@ everything from the canonical table, so a hand-edited URL cannot forge a result 
 it fails the same validation a forged POST would. The chat fires the `/api/reveal`
 request as soon as the last question is answered and stashes it in
 `sessionStorage`, so by the time the loading scene plays the copy is usually
-already local: the four steps are a designed beat, not a spinner. The last step
+already local: the three steps are a designed beat, not a spinner. The last step
 holds until the data is actually in, with a 9s ceiling, so a cold model call
 stretches the beat instead of the page claiming to be finished.
 
@@ -69,7 +69,7 @@ against the spec's hard constraints across all 576 combinations.
 
 ## How the AI part works
 
-Blocks B (`Yang dibutuhkan untuk sampai ke sana`) and C (`Tentang AI`) on the
+Blocks B (`Untuk sampai ke sana`) and C (`Tentang AI`) on the
 result screen are generated per visitor through **OpenRouter**, defaulting to
 `google/gemini-3.6-flash`. Everything else is fixed copy from the spec.
 
@@ -148,12 +148,13 @@ microcopy). Raise to `medium` if the copy reads thin.
 
 ## The chatbot layer
 
-Per-answer acknowledgements ("Oke, L&D. Kamu kerja di bagian yang hasilnya paling
-lambat kelihatan.") are **written, not generated** — they live next to each option
-in `public/quiz-data.js`. That's deliberate: they appear instantly with no network
-round trip, and they're reviewable copy on a marketing asset. The model is spent
-where the combinatorics actually make hand-writing impossible: the 576-variant
-result blocks.
+Acknowledgements are one plain word per question ("Oke.", "Baik.") — a beat that
+says the answer landed, then moves on. They live on the question, not the option,
+in `public/quiz-data.js`. Earlier they read each answer back with an
+interpretation ("Oke, L&D. Kamu kerja di bagian yang hasilnya paling lambat
+kelihatan."); that made the bot sound like it was grading the visitor mid-quiz,
+and it spent the insight before the reveal had a chance to. All interpretation now
+belongs to `/hasil`, where the model is spent on the 576-variant result blocks.
 
 Chat behaviours: typing indicator before each message, character-by-character
 reveal, answers echoed as the visitor's own bubbles, options as tappable chips,
@@ -192,7 +193,7 @@ segment sales should get.
 2. **Exit screen CTA destination** — currently `#program-lain`. If one program is
    most often the right next-best fit, link it directly.
 3. **Open House CTA has no supporting line.** The button sits under the program
-   bullets with no reason to attend attached.
+   summary with no reason to attend attached.
 4. **No capture on the exit screen.** Decide whether non-HR visitors are worth
    anything.
 5. **Program page must be live** before this ships — "Ini program yang dibangun

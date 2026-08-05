@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hasil kamu · RevoU</title>
-<meta name="description" content="Jalur dari posisi kamu sekarang ke yang kamu kejar.">
+<meta name="description" content="Posisi kamu sekarang dan yang diperlukan untuk mencapai tujuan kamu.">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,7 +44,9 @@
     background-attachment: fixed;
   }
 
-  /* Nothing scrolls until the deck hands over to the finale. */
+  /* Nothing on this page scrolls: every scene is one screen, the finale
+     included. The rule is scoped to the loader and deck anyway, so a headline
+     that outgrows one screen on the finale can still be scrolled to. */
   html:has(#deck[data-show='true']), html:has(#loader:not([data-done='true'])) { overflow: hidden; }
 
   /* ---------- Scene 0: the loader ---------- */
@@ -277,11 +279,9 @@
 
   /* The above-the-fold treatment lifted from the Open House landing page
      (01. Openhouse/human-capital, .hc-glow--hero + .hc-arcs), so the program
-     lands on the same surface the visitor meets when they follow the CTA. It
-     covers the first screen only — the detail below stays on the page's own
-     background, the way the landing page drops its hero glow after the fold.
-     The blurred Figma ellipses are CSS radial-gradients there and here; the
-     ring motif is the real exported vector. */
+     lands on the same surface the visitor meets when they follow the CTA. The
+     blurred Figma ellipses are CSS radial-gradients there and here; the ring
+     motif is the real exported vector. */
   /* The wrapper is what bounds the treatment: it tracks the stage's real height,
      so a headline that grows past one screen extends the graphics with it
      instead of leaving a seam where a fixed 100svh would have stopped. */
@@ -312,6 +312,12 @@
       radial-gradient(70% 62% at 52% 36%,
         rgba(17,106,248,0.55) 0%, rgba(41,63,245,0.30) 48%, rgba(41,63,245,0) 100%);
   }
+  /* Slow rotation. The motif is concentric and centred, so the rings themselves
+     are rotationally symmetric and only the lit wedge reads as moving — which is
+     the point: the surface drifts without anything appearing to spin. One turn
+     takes two minutes, well under the speed where the eye starts tracking it
+     instead of the headline. `rotate` is animated on its own, not via a
+     transform, so it cannot clobber the `translate` doing the centring. */
   .hero-bg .arcs {
     position: absolute;
     left: 50%; top: 50%; translate: -50% -50%;
@@ -319,7 +325,10 @@
     aspect-ratio: 1;
     background: url('bg-arcs.svg') no-repeat center / contain;
     opacity: 0.6;
+    animation: arc-drift 120s linear infinite;
+    will-change: rotate;
   }
+  @keyframes arc-drift { to { rotate: 360deg; } }
 
   .stage {
     position: relative;
@@ -339,6 +348,7 @@
   .stage > :nth-child(2) { animation-delay: 0.14s; }
   .stage > :nth-child(3) { animation-delay: 0.3s; }
   .stage > :nth-child(4) { animation-delay: 0.46s; }
+  .stage > :nth-child(5) { animation-delay: 0.62s; }
 
   /* The landing page's hero pill: solid navy, 12px radius, wide tracking. Its
      label there is two words; this one carries a metadata line, so the tracking
@@ -398,50 +408,20 @@
   }
   .stage .cta:hover { transform: translateY(-2px); box-shadow: 0 22px 50px -12px rgba(255, 15, 76, 0.75); }
 
-  /* Below the fold: the detail the hero deliberately leaves out. */
-  .detail {
-    max-width: 620px;
-    margin: 0 auto;
-    padding: 0 22px calc(48px + env(safe-area-inset-bottom));
-  }
-  .detail .meta {
-    display: block;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--c-yellow);
-    margin-bottom: 16px;
-  }
-  .detail ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-  .detail li {
-    position: relative;
-    padding-left: 22px;
-    font-size: 16px;
-    line-height: 1.45;
-    color: rgba(255, 255, 255, 0.88);
-  }
-  .detail li::before {
-    content: '';
-    position: absolute;
-    left: 2px; top: 9px;
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--c-yellow);
-  }
-  .detail .foot { text-align: center; padding-top: 34px; }
-  .detail .foot a {
+  /* The only way back, kept quiet so it does not compete with the CTA. */
+  .stage .restart {
     font-size: 13px;
     color: var(--muted-2);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .detail .foot a:hover { color: var(--text); }
+  .stage .restart:hover { color: var(--text); }
 
   @media (prefers-reduced-motion: reduce) {
     .steps li[data-state='active'] .mark { animation: none; }
     .hint[data-show='true']::after { animation: none; }
     .scene[data-active='true'] > *, .stage > * { animation: none; }
+    .hero-bg .arcs { animation: none; }
   }
 </style>
 </head>
@@ -462,7 +442,7 @@
   <p class="hint" id="hint" data-show="false"></p>
 </div>
 
-<!-- Final scene — the program, above the fold, with the detail below it. -->
+<!-- Final scene — the program, above the fold and nothing after it. -->
 <main class="finale" id="finale" data-show="false">
   <div class="hero-wrap">
     <div class="hero-bg" aria-hidden="true">
@@ -471,7 +451,6 @@
     </div>
     <section class="stage" id="stage"></section>
   </div>
-  <section class="detail" id="detail"></section>
 </main>
 
 <script type="module">
@@ -660,13 +639,9 @@ function renderFinale() {
     <span class="pill">${escapeHtml(c.pill)}</span>
     <h1>${escapeHtml(c.headline)} <span class="hl">${escapeHtml(c.headlineHighlight)}</span></h1>
     <p class="sub">${escapeHtml(c.sub)}</p>
-    <a class="cta" href="${c.ctaHref}" target="_blank" rel="noopener">${escapeHtml(c.cta)}</a>`;
+    <a class="cta" href="${c.ctaHref}" target="_blank" rel="noopener">${escapeHtml(c.cta)}</a>
+    <a class="restart" href="/">${escapeHtml(REVEAL.restart)}</a>`;
   $('stage').querySelector('.cta').addEventListener('click', () => track({ event: 'oh_click', oh_clicked: true }));
-
-  $('detail').innerHTML = `
-    <span class="meta">${escapeHtml(c.meta)}</span>
-    <ul>${c.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
-    <p class="foot"><a href="/">${escapeHtml(REVEAL.restart)}</a></p>`;
 }
 
 /** Advances one scene per tap, then hands over to the finale. */
