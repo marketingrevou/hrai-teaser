@@ -410,15 +410,6 @@
   }
   .stage .cta:hover { transform: translateY(-2px); box-shadow: 0 22px 50px -12px rgba(255, 15, 76, 0.75); }
 
-  /* The only way back, kept quiet so it does not compete with the CTA. */
-  .stage .restart {
-    font-size: 13px;
-    color: var(--muted-2);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .stage .restart:hover { color: var(--text); }
-
   @media (prefers-reduced-motion: reduce) {
     .steps li[data-state='active'] .mark { animation: none; }
     .hint[data-show='true']::after { animation: none; }
@@ -641,8 +632,7 @@ function renderFinale() {
     <span class="pill">${escapeHtml(c.pill)}</span>
     <h1>${escapeHtml(c.headline)} <span class="hl">${escapeHtml(c.headlineHighlight)}</span></h1>
     <p class="sub">${escapeHtml(c.sub)}</p>
-    <a class="cta" href="${c.ctaHref}" target="_blank" rel="noopener">${escapeHtml(c.cta)}</a>
-    <a class="restart" href="/">${escapeHtml(REVEAL.restart)}</a>`;
+    <a class="cta" href="${c.ctaHref}" target="_blank" rel="noopener">${escapeHtml(c.cta)}</a>`;
   $('stage').querySelector('.cta').addEventListener('click', () => track({ event: 'oh_click', oh_clicked: true }));
 }
 

@@ -365,16 +365,6 @@ async function showExit() {
   scrollDown();
 
   track({ event: 'exit', exited_non_hr: true });
-  offerRestart();
-}
-
-function offerRestart() {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'restart';
-  btn.textContent = 'Ulangi dari awal';
-  btn.addEventListener('click', () => location.reload());
-  options.replaceChildren(btn);
 }
 </script>
 </body>

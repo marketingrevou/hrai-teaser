@@ -113,7 +113,6 @@ export const REVEAL = {
     'Yang diperlukan untuk mencapai tujuan kamu',
   ],
   advance: 'Ketuk untuk lanjut',
-  restart: 'Ulangi dari awal',
 };
 
 export const RESULT = {
