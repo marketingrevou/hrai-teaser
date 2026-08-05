@@ -350,9 +350,11 @@
   .stage > :nth-child(4) { animation-delay: 0.46s; }
   .stage > :nth-child(5) { animation-delay: 0.62s; }
 
-  /* The landing page's hero pill: solid navy, 12px radius, wide tracking. Its
-     label there is two words; this one carries a metadata line, so the tracking
-     is eased off from 0.21em and the case left alone to keep it one line. */
+  /* The landing page's hero pill: solid navy, 12px radius, wide tracking. The
+     tracking is eased off from 0.21em and the case left alone — that was to fit
+     the program name plus the metadata on one line, and now that the name has
+     moved up to the headline the label is short enough for the landing page's
+     0.21em uppercase if this ever wants to match it exactly. */
   .pill {
     display: inline-flex;
     align-items: center;
