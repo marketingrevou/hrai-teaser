@@ -20,7 +20,7 @@ import '../lib/env.js';
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateResultCopy, apiEnabled, validate, joinPoints, MODEL } from '../lib/generate.js';
+import { generateResultCopy, apiEnabled, validate, MODEL } from '../lib/generate.js';
 import { softWarnings } from '../lib/tone.js';
 import { QUESTIONS, deriveVariables } from '../public/quiz-data.js';
 
@@ -110,13 +110,13 @@ async function main() {
     return {
       key,
       vars,
-      gap_points: copy.gap_points,
+      gap_body: copy.gap_body,
       ai_body: copy.ai_body,
       // `fallback` means two model attempts both failed validation. Those are the
       // rows to read first: the prompt is losing on that combination.
       source: copy.source ?? 'model',
       warnings: [
-        ...softWarnings(joinPoints(copy.gap_points)).map((w) => `gap: ${w}`),
+        ...softWarnings(copy.gap_body).map((w) => `gap: ${w}`),
         ...softWarnings(copy.ai_body).map((w) => `ai: ${w}`),
       ],
     };
@@ -124,7 +124,7 @@ async function main() {
 
   await mkdir(DATA_DIR, { recursive: true });
 
-  const copyByKey = Object.fromEntries(rows.map((r) => [r.key, { gap_points: r.gap_points, ai_body: r.ai_body }]));
+  const copyByKey = Object.fromEntries(rows.map((r) => [r.key, { gap_body: r.gap_body, ai_body: r.ai_body }]));
   await writeFile(
     JSON_OUT,
     // `generated_by` is informational; hand edits after review are expected and
@@ -200,9 +200,7 @@ function renderReview(rows) {
         r.source === 'fallback' ? '**FALLBACK**' : null,
       ].filter(Boolean).join(' · ');
       out.push(`### ${tags}`, '');
-      out.push('**Untuk sampai ke sana**', '');
-      for (const p of r.gap_points) out.push(`- ${p}`);
-      out.push('');
+      out.push(`**Untuk sampai ke sana** — ${r.gap_body}`, '');
       out.push(`**Bagaimana AI bisa membantumu** — ${r.ai_body}`, '');
       if (r.warnings.length) out.push(`⚠ ${r.warnings.join(' · ')}`, '');
     }

@@ -219,30 +219,6 @@
   .scene .gap .head { margin-bottom: 12px; }
   .scene .gap .body { font-size: clamp(17px, 4.4vw, 21px); }
 
-  /* Three bullets, not a paragraph. The marker is drawn rather than listed so it
-     can be the brand yellow and sit on the first line's optical centre; the text
-     hangs off it instead of wrapping back under it. */
-  ul.body {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    gap: 11px;
-  }
-  ul.body li {
-    position: relative;
-    padding-left: 20px;
-  }
-  ul.body li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.62em;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--c-yellow);
-  }
-
   /* The bridge scene: typed line, filling bar, no tap. The caret is what makes
      the pause read as something being written rather than as a stall, so it is
      removed the moment the line is complete. */
@@ -561,9 +537,9 @@ async function loadResult() {
   try {
     const hit = JSON.parse(sessionStorage.getItem(cacheKey));
     // Only trust a hit that matches the shape this page renders. A payload stored
-    // before gap_body became gap_points still parses, so without this check the
-    // gap block silently disappears for anyone holding an older tab open.
-    if (Array.isArray(hit?.gap_points) && hit.ai_body) return hit;
+    // under an older shape still parses, so without this check the gap block
+    // silently disappears for anyone holding an older tab open.
+    if (typeof hit?.gap_body === 'string' && hit.ai_body) return hit;
   } catch { /* ignore */ }
 
   try {
@@ -657,11 +633,10 @@ function buildScenes(data) {
   //     both ends of the path are still on screen. The gap half is dropped if
   //     the model call failed, leaving the path alone.
   list.push(scene((s) => {
-    const points = Array.isArray(data?.gap_points) ? data.gap_points : [];
-    const gap = points.length
+    const gap = data?.gap_body
       ? `<div class="gap">
            <p class="head">${escapeHtml(RESULT.gapHeading)}</p>
-           <ul class="body">${points.map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+           <p class="body">${escapeHtml(data.gap_body)}</p>
          </div>`
       : '';
     s.innerHTML = `

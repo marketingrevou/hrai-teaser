@@ -87,7 +87,7 @@ async function handleReveal(req, res) {
   return json(res, 200, {
     role_label: vars.role_label,
     aspiration_to: vars.aspiration_to,
-    gap_points: copy.gap_points,
+    gap_body: copy.gap_body,
     ai_body: copy.ai_body,
     source: copy.source ?? 'model',
   });

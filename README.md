@@ -148,8 +148,8 @@ regresses, step sideways within the Gemini family or to `anthropic/claude-sonnet
 - **`lib/generate.js`** holds the system prompt — the spec's §4 rules translated
   into Indonesian instructions — and requests **structured outputs**
   (`response_format: json_schema`, `strict: true`), so the response is always
-  exactly `{gap_points, ai_body}` — three bullet strings and one paragraph, never
-  prose wrapping the copy or a paragraph the page would have to split. Parsing is
+  exactly `{gap_body, ai_body}` — two paragraph strings, never prose wrapping the
+  copy. Parsing is
   still tolerant of a stray code fence, because strict-mode enforcement varies by
   provider on OpenRouter.
 - **The client never sees the key.** The browser posts four answer *indices*;

@@ -1,7 +1,8 @@
 # Tone guideline — generated reveal copy
 
-Applies to the two model-written blocks on `/hasil`: `gap_points` ("Untuk sampai ke
-sana", two sentences) and `ai_body` ("Bagaimana AI bisa membantumu", one paragraph).
+Applies to the two model-written blocks on `/hasil`: `gap_body` ("Untuk sampai ke
+sana", one paragraph of two sentences) and `ai_body` ("Bagaimana AI bisa membantumu",
+one paragraph).
 
 The gap block is bullets, so the rules below read it as one block joined end to end:
 `kamu` has to appear somewhere in the two, not in each one, and an abstraction
@@ -59,7 +60,7 @@ konsultan kini bisa diselesaikan secara mandiri."
   even the one doing it.
 - **No `kamu` anywhere.** The reader has been deleted from their own result.
 
-**`gap_points`**, back when it was one paragraph — "Pengalaman di bidang business partnering memberikan keluasan sudut
+**`gap_body`** — "Pengalaman di bidang business partnering memberikan keluasan sudut
 pandang yang sangat kuat. Tuntutan untuk posisi Head of HR berikutnya adalah kedalaman
 analisis di setiap fungsi. Keunggulannya, akses ke pengambil keputusan bukan lagi
 hambatan, melainkan kedalaman jawaban yang kini menjadi pembeda."
@@ -150,11 +151,11 @@ second time, say it in plain words.
 > posisi kamu adalah saat kamu bisa menghitung sendiri dampak biaya dari satu opsi
 > restrukturisasi, pekerjaan yang dulu dibawa ke konsultan.
 
-**`gap_points`** (gen · business partnering · altitude 4 · → Head of HR, two sentences,
-≤14 words each):
+**`gap_body`** (gen · business partnering · altitude 4 · → Head of HR, one paragraph
+of two sentences, ≤40 words):
 
-> - Kamu sudah biasa membaca masalah orang dari sisi bisnisnya.
-> - Head of HR minta angkanya juga, karena kursi itu sudah kamu punya.
+> Kamu sudah biasa membaca masalah orang dari sisi bisnisnya. Head of HR minta
+> angkanya juga, karena kursi itu sudah kamu punya.
 
 Same beats, same constraints, same hard rules. Shorter, and a person is in it. The
 altitude-4 room — access is no longer the obstacle — is the `karena` clause rather than
