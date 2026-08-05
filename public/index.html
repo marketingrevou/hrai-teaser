@@ -96,6 +96,14 @@ function scrollDown() {
   log.scrollTo({ top: log.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
 }
 
+// The composer grows when option chips appear, which shrinks the log without
+// moving its scroll offset — the newest bubble would slide up out of view,
+// looking as if the chips covered it. Re-pin the log on every composer resize,
+// including the staggered chip animation and clearing them again.
+if (window.ResizeObserver) {
+  new ResizeObserver(() => scrollDown()).observe(document.querySelector('.composer'));
+}
+
 function node(tag, cls, parent) {
   const el = document.createElement(tag);
   if (cls) el.className = cls;
@@ -193,6 +201,7 @@ function ask(list) {
       options.append(btn);
     });
     options.firstElementChild?.focus({ preventScroll: true });
+    scrollDown();
   });
 }
 
