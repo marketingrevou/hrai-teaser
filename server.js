@@ -11,7 +11,7 @@ import { createServer } from 'node:http';
 import { readFile, appendFile, mkdir } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateResultCopy, apiEnabled, cacheStats, MODEL } from './lib/generate.js';
+import { generateResultCopy, apiEnabled, cacheStats, frozenStats, MODEL } from './lib/generate.js';
 import { deriveVariables } from './public/quiz-data.js';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -151,7 +151,9 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && req.url === '/api/reveal') return await handleReveal(req, res);
     if (req.method === 'POST' && req.url === '/api/track') return await handleTrack(req, res);
     if (req.method === 'GET' && req.url === '/api/health') {
-      return json(res, 200, { ok: true, model_enabled: apiEnabled, model: MODEL, ...cacheStats() });
+      return json(res, 200, {
+        ok: true, model_enabled: apiEnabled, model: MODEL, ...cacheStats(), ...frozenStats(),
+      });
     }
     if (req.method === 'GET' || req.method === 'HEAD') return await serveStatic(req, res);
     res.writeHead(405).end('Method not allowed');

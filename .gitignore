@@ -1,6 +1,10 @@
 node_modules/
 .env
-data/
+data/*
+# Reviewed result copy is a source artefact, not output: it has to reach
+# production, or the server falls back to live generation there. `data/*` rather
+# than `data/` because git cannot re-include a file under an excluded directory.
+!data/result-copy.json
 *.log
 .vercel
 .env*

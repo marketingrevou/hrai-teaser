@@ -1,8 +1,12 @@
 # Tone guideline — generated reveal copy
 
 Applies to the two model-written blocks on `/hasil`: `gap_body` ("Untuk sampai ke sana")
-and `ai_body` ("Tentang AI"). Written for whoever edits `SYSTEM_PROMPT` in
-`lib/generate.js`. §7 is prompt-ready Indonesian; §8 is enforceable.
+and `ai_body` ("Tentang AI").
+
+**This is implemented, not aspirational.** `lib/tone.js` holds both halves: the
+Indonesian `VOICE_PROMPT` the model reads (§7 below) and the checks its output has to
+pass (§8). Change a rule there and here together. §§1-6 are the reasoning; the code is
+the enforcement.
 
 The benchmark is not an abstraction. The static fallback in `lib/copy.js` is already
 in the target register, and the model is currently writing *below* it:
@@ -177,10 +181,10 @@ Add to the existing check at `lib/generate.js:91`. Before answering, verify:
 
 ---
 
-## 7. Prompt-ready block (Indonesian)
+## 7. The prompt block (Indonesian)
 
-Drop this into `SYSTEM_PROMPT`, replacing the `# Larangan gaya yang sering dilanggar`
-section rather than sitting alongside it.
+Lives as `VOICE_PROMPT` in `lib/tone.js`, interpolated into `SYSTEM_PROMPT`. Reproduced
+here for review; edit the code, not this copy.
 
 ```
 # Suara
@@ -215,42 +219,78 @@ Dilarang: merupakan, melainkan, namun, adapun, oleh karena itu, dengan demikian,
 keunggulannya, secara mandiri, secara signifikan, hal ini, hal tersebut, teknologi ini
 (sebut AI saja), kini (pakai sekarang), terjadi ketika.
 
-Dilarang menguatkan dengan kata: sangat, sekali, luar biasa, amat, betul-betul,
-mumpuni, solid. Kalau satu kelebihan butuh kata "sangat", berarti belum kamu jelaskan.
+Dilarang menguatkan dengan kata: sangat, luar biasa, amat, betul-betul, mumpuni.
+Kalau satu kelebihan butuh kata "sangat", berarti belum kamu jelaskan.
 
-Satu kata benda abstrak (kedalaman, keluasan, posisi, tuntutan) hanya boleh sekali per
-blok. Yang kedua, sebut dengan kata biasa.
+Satu kata benda abstrak (kedalaman, keluasan, cakupan, posisi, tuntutan) hanya boleh
+sekali per blok. Yang kedua, sebut dengan kata biasa.
 
 Aturan altitude dan ai_level di atas adalah gagasan yang harus kamu sampaikan, bukan
 kalimat yang harus kamu tiru. Tulis dengan kata-katamu sendiri.
 ```
 
-## 8. Enforcement
+## 8. Enforcement — three layers
 
-Style rules that only live in a prompt get ignored on the roll of a dice. These are
-mechanically checkable and belong in `VIOLATIONS` (`lib/generate.js:128`), where a hit
-triggers the existing correction-and-retry loop rather than shipping stiff copy:
+A prompt is a request. These are the guarantees.
 
-```js
-[/\bmerupakan\b|\bmelainkan\b|\bnamun\b|\badapun\b/i, 'formal report connector'],
-[/\bkeunggulannya\b|oleh\s+karena\s+itu|dengan\s+demikian/i, 'formal report connector'],
-[/\bsecara\s+(mandiri|signifikan|langsung|optimal)\b/i, '"secara X" adverb'],
-[/\bteknologi\s+ini\b|\bhal\s+(ini|tersebut)\b/i, 'vague reference; name the thing'],
-[/\bsangat\b|\bsekali\b|\bluar\s+biasa\b|\bmumpuni\b/i, 'intensifier standing in for a reason'],
-[/\b(penggunaan|pemanfaatan|penguasaan|pelaksanaan|peningkatan)\b/i, 'nominalization; use the verb'],
+### Layer 1 — hard rules (`HARD` in `lib/tone.js`)
+
+Absence rules only: "this word must not appear." No false positives, so a hit is always
+real and safely drives the existing correction-and-retry loop in `generate.js`. A draft
+that breaks a rule twice loses to the fallback rather than shipping.
+
+Covers R2, R5, R6, the repeated-abstraction count, plus the single most valuable check —
+`kamu` must appear in each block. Both screenshot examples failed that one alone.
+
+Run against the screenshot copy, this rejects on **14 counts**. The §4 rewrites pass.
+
+### Layer 2 — soft warnings (`softWarnings` in `lib/tone.js`)
+
+R1's abstract-subject test and R4's concrete-object test are *presence* rules, and
+presence needs a hand-built vocabulary list. Good copy using a word nobody thought to
+list would be rejected and silently swapped for fallback — too expensive a failure for a
+guess. So these never block a response; they annotate the review file instead.
+
+Sentence length lives here too, deliberately. It turned out not to discriminate:
+"Penggunaan untuk menulis dokumen merupakan pemanfaatan paling dasar dari teknologi ini"
+is eleven words and stiff. `HARD` keeps a generous 24-word runaway guard; the 15-word
+target stays in the prompt.
+
+### Layer 3 — pre-generate all 448 and freeze them (`scripts/pregen.mjs`)
+
+The layer that actually settles voice, because *grammatically compliant but lifeless
+passes every regex*. 576 answer paths collapse to 448 unique generations, which is
+small enough to read.
+
+```
+node scripts/pregen.mjs            # all 448 → data/result-copy.json + review .md
+node scripts/pregen.mjs --limit 8  # smoke test first
+node scripts/pregen.mjs --force    # overwrite; discards review edits
 ```
 
-Plus one positive check inside `validate()`, since the deleted-reader failure is the
-worst of them and the cheapest to catch:
+Once `data/result-copy.json` exists, `generate.js` serves from it and makes no API call.
+Every string a visitor can see has been read by a person. No latency, no cold start, no
+runtime API dependency. Hand-edit the JSON during review — a human edit outranks the
+regexes, so a rule broken there is logged and still served.
 
-```js
-if (!/\bkamu\b/i.test(gap_body)) found.push('gap_body: no "kamu"');
-if (!/\bkamu\b/i.test(ai_body)) found.push('ai_body: no "kamu"');
-```
+The review file groups by role so near-identical copy stacks into columns: a formula the
+model is leaning on shows up as a column, not as one bad row. Note that repetition
+*across* variants is not itself a defect — each visitor sees exactly one row. It matters
+for reviewer fatigue, not for the reader.
 
-Note before applying: the fallback copy in `lib/copy.js` is held to the same validator
-by `scripts/check-copy.mjs`, which passes today (576 combinations, 0 failures). The
-`kamu` check breaks it — `AI_BY_LEVEL[1]`, `[2]` and `[4]` have no `kamu` in them. Give
-those three a pass in the same change. `AI_BY_LEVEL[2]` also opens on "pemakaian",
-which R2 rules out; the regex above does not catch it, but the fallback should not be
-the one example in the repo breaking its own guideline.
+### What this cost the existing rules
+
+The old `[/\bRp\s*\d|\bjuta\b|\bgaji\b/i, 'salary or figure']` banned the bare word
+`gaji`, which also ruled out "struktur gaji" — a legitimate HR object, already named in
+`EXIT.body1`, and exactly the concrete noun R4 asks for. The spec bans salary *numbers*,
+so the rule now matches figures (`Rp 25 juta`, `naik 30 persen`, a numeral near `gaji`)
+and leaves compensation as a topic available. Verified: "Struktur gaji jadi tanggung
+jawab kamu" passes, "Gaji kamu bisa naik 30 persen" does not.
+
+`strategic` joined the English ban list: the smoke test caught "perubahan strategic HR"
+in a body, and that is the program name the reveal withholds until the final card.
+
+`lib/copy.js` needed three edits to clear its own guideline — `AI_BY_LEVEL[1]`, `[2]`
+and `[4]` had no `kamu`, `[2]` opened on "pemakaian", and `GAP_BY_ALTITUDE[4]` repeated
+`kedalaman` after the `spec` leg had already spent it. `scripts/check-copy.mjs` holds
+the fallback to the full rule set across all 576 combinations.

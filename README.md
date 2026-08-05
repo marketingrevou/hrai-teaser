@@ -73,6 +73,14 @@ Blocks B (`Untuk sampai ke sana`) and C (`Tentang AI`) on the
 result screen are generated per visitor through **OpenRouter**, defaulting to
 `google/gemini-3.6-flash`. Everything else is fixed copy from the spec.
 
+**Tone is enforced, not requested.** See `TONE.md`. The prompt asks for a voice, the
+validator in `lib/tone.js` mechanically rejects the register that keeps leaking in
+(nominalizations, report connectors, copy with no `kamu` in it), and a rejected draft
+gets one correction before losing to the fallback. Because 576 answer paths collapse to
+only 448 unique generations, the last layer is a person: `node scripts/pregen.mjs`
+writes all 448 plus a review file, and once `data/result-copy.json` exists the server
+serves reviewed strings and calls no API at all.
+
 **Model choice was measured, not assumed** — same 10 combinations, same prompt:
 
 | Model | Passed the gate | Retries needed | All 448 variants |
@@ -180,9 +188,13 @@ segment sales should get.
 | `public/hasil.html` | The reveal — the loading scene and the scene deck that ends on the program |
 | `public/app.css` | Tokens and every shared style. Both pages also inline the tokens and the background so first paint is never a white flash |
 | `public/quiz-data.js` | Questions, options, derived variables, handoff, reveal, result and exit copy. Single source of truth, imported by both browser and server |
-| `lib/generate.js` | System prompt, OpenRouter call, constraint validation, cache |
+| `lib/generate.js` | System prompt, OpenRouter call, constraint validation, cache, reviewed-copy lookup |
+| `lib/tone.js` | The tone rules from `TONE.md`: the Indonesian prompt section and the checks its output must pass |
 | `lib/env.js` | Loads `.env` before any module reads `process.env` |
 | `lib/copy.js` | Static fallback for blocks B and C |
+| `TONE.md` | Why the generated copy reads the way it does, and the three layers that keep it there |
+| `data/result-copy.json` | Reviewed copy for all 448 variants. When present, the server serves it and makes no API call |
+| `scripts/pregen.mjs` | Generates all 448 variants plus a Markdown review file |
 | `server.js` | Static serving, `/api/reveal`, `/api/track`, `/api/health`. Extensionless paths fall back to `.html`, so `/hasil` resolves — a static host needs the equivalent (Vercel: `cleanUrls`) |
 | `scripts/check-copy.mjs` | Constraint check across all combinations |
 
