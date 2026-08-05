@@ -208,20 +208,24 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: var(--c-blue-deep);
+    background: url('revou-logo.svg') center / cover no-repeat;
     border: 1px solid var(--hair);
-    display: grid;
-    place-items: center;
     margin-bottom: 2px;
   }
-  .avatar::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--c-yellow);
-  }
   .row.stacked .avatar { visibility: hidden; }
+
+  .hero-logo {
+    width: 40px;
+    height: 40px;
+    margin-bottom: -4px;
+  }
+
+  .topbar-logo {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+  }
 
   .bubble {
     max-width: min(80%, 430px);
@@ -490,6 +494,7 @@
 <div class="app">
   <!-- Screen 1 — Hero. No program name here; the name is the payoff. -->
   <section class="hero" id="hero">
+    <img src="revou-logo.svg" alt="RevoU" class="hero-logo">
     <div>
       <p class="eyebrow" id="hero-eyebrow"></p>
       <h1 id="hero-headline"></h1>
@@ -503,6 +508,7 @@
   <section class="chat" id="chat" data-active="false">
     <header class="topbar">
       <button class="back" id="back" type="button" aria-label="Kembali ke pertanyaan sebelumnya">←</button>
+      <img src="revou-logo.svg" alt="" class="topbar-logo">
       <div class="topbar-meta">
         <span class="who">RevoU</span>
         <span class="eyebrow step" id="step-label">Program baru · September 2026</span>
