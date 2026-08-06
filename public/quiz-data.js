@@ -142,19 +142,19 @@ export const RESULT = {
   // detail that used to sit below the fold here is the Open House's job to sell,
   // so the scene ends on the CTA instead of arguing past it.
   //
-  // The headline is the program name, which is the payoff the whole reveal has
-  // been withholding — so it lands as the biggest thing on the screen rather than
-  // as a claim about the program ("The first HR program built for the AI era"),
-  // which the sub still carries. The name is therefore gone from the pill: it was
-  // the first thing read there and the largest thing read two lines below, and
-  // saying it twice spent the reveal on a repeat. `headline` is set uppercase by
-  // CSS, so it is stored in sentence case and stays readable to screen readers;
-  // `headlineHighlight` is the yellow tail, here the "AI" the program turns on.
+  // The headline claims the category rather than naming the program, and the
+  // yellow tail carries "Strategic HR" — which is both the claim and the program
+  // name, so the payoff still lands in the largest type on the screen without the
+  // line having to be the bare title. The name stays out of the pill: it was the
+  // first thing read there and the largest thing read two lines below, and saying
+  // it twice spent the reveal on a repeat. `headline` is set uppercase by CSS, so
+  // it is stored in sentence case and stays readable to screen readers;
+  // `headlineHighlight` is the yellow tail.
   card: {
     pill: '15 weeks · Online',
-    headline: 'Strategic HR with',
-    headlineHighlight: 'AI',
-    sub: 'A 15-week program that takes HR professionals from execution to strategy, with AI built into how you work.',
+    headline: 'The First Program built for',
+    headlineHighlight: 'Strategic HR',
+    sub: 'A 15-week program that takes HR professionals from operational execution to strategic influence, with AI built into how you work.',
     cta: 'Daftar Open House',
     ctaHref: 'https://openhouse.revou.co/strategic-hr?utm_ops=teaser',
   },
