@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The First Program built for Strategic HR · RevoU</title>
-<meta name="description" content="Jawab empat pertanyaan singkat dan lihat posisi kamu sekarang dan yang diperlukan untuk mencapai tujuan kamu.">
+<meta name="description" content="Jawab tiga pertanyaan singkat dan lihat posisi kamu sekarang dan yang diperlukan untuk mencapai tujuan kamu.">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,7 +57,7 @@
         <span class="eyebrow step" id="step-label">Program baru · September 2026</span>
       </div>
     </header>
-    <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-label="Kemajuan"><i id="progress-bar"></i></div>
+    <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0" aria-label="Kemajuan"><i id="progress-bar"></i></div>
     <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions text"></div>
     <div class="composer"><div class="options" id="options"></div></div>
   </section>
@@ -206,13 +206,17 @@ function ask(list) {
   });
 }
 
+// Denominator comes from the table rather than a literal, so adding or removing
+// a question cannot leave the bar reading out of a stale total.
+const TOTAL = QUESTIONS.length;
+
 function setProgress(answered) {
   const p = $('progress');
   const show = answered >= 0;
-  const clamped = Math.min(Math.max(answered, 0), 4);
+  const clamped = Math.min(Math.max(answered, 0), TOTAL);
   p.dataset.show = show ? 'true' : 'false';
   p.setAttribute('aria-valuenow', String(clamped));
-  $('progress-bar').style.width = `${(clamped / 4) * 100}%`;
+  $('progress-bar').style.width = `${(clamped / TOTAL) * 100}%`;
 }
 
 function setStepLabel(text) { $('step-label').textContent = text; }
@@ -290,7 +294,6 @@ async function advance(step, { repeat = false } = {}) {
     event: 'answer',
     screen: q.id,
     ...(q.id === 'role' ? { role: opt.label, role_type: opt.role_type } : {}),
-    ...(q.id === 'altitude' ? { altitude: opt.altitude } : {}),
     ...(q.id === 'ai' ? { ai_level: opt.ai_level } : {}),
     ...(q.id === 'aspiration' ? { aspiration: opt.label } : {}),
   });
@@ -311,27 +314,17 @@ async function advance(step, { repeat = false } = {}) {
 
 /* ---------- handoff ----------
    The chat stops here. Nothing about the result is shown: the path, the two
-   generated blocks and the program all belong to /hasil, where the reveal has
+   result blocks and the program all belong to /hasil, where the reveal has
    room to be paced. */
 
 async function showHandoff() {
   $('back').dataset.show = 'false';
   setStepLabel('Hasil');
-  setProgress(4);
+  setProgress(TOTAL);
 
+  // The three indices are the whole handoff. /hasil reads its copy out of the same
+  // table this page imports, so there is nothing to prefetch and nothing to warm.
   const key = state.answers.join('-');
-
-  // Warm the result while the two closing lines type out, so the reveal page's
-  // loading scene is a designed beat rather than a spinner over a cold model
-  // call. Failure is silent; /hasil falls back to fetching it itself.
-  fetch('/api/reveal', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ answers: state.answers }),
-  })
-    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-    .then((data) => { try { sessionStorage.setItem(`hrp:res:${key}`, JSON.stringify(data)); } catch { /* ignore */ } })
-    .catch(() => {});
 
   for (const line of HANDOFF.lines) await say(line, { pause: 520 });
 

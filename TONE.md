@@ -1,8 +1,17 @@
-# Tone guideline — generated reveal copy
+# Tone guideline — reveal copy
 
-Applies to the two model-written blocks on `/hasil`: `gap_body` ("Untuk sampai ke
-sana", one paragraph of two sentences) and `ai_body` ("Bagaimana AI bisa membantumu",
-one paragraph).
+> **Editorial reference only.** The reveal copy is no longer generated: the ten
+> strings are hand-written and looked up in `public/result-copy.js`, and the code
+> that enforced the rules below (`lib/tone.js`, `lib/generate.js`, `lib/copy.js`,
+> `scripts/pregen.mjs`) is gone. What survives here is the *reasoning* — why the
+> register is what it is, and what to hold a new string to. The condensed rules the
+> shipped copy actually follows are at the top of `public/result-copy.js` and in
+> `result-copy-matrix-final.md`; sections 7 and 8 below describe a prompt and a
+> validator that no longer exist. Passages written in the present tense about the
+> model are historical.
+
+Applies to the two variable blocks on `/hasil`: `gap_body` ("Untuk sampai ke
+sana") and `ai_body` ("Bagaimana AI bisa membantumu").
 
 The gap block is bullets, so the rules below read it as one block joined end to end:
 `kamu` has to appear somewhere in the two, not in each one, and an abstraction

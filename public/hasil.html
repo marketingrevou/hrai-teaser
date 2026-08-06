@@ -482,7 +482,8 @@
 </main>
 
 <script type="module">
-import { QUESTIONS, RESULT, REVEAL } from './quiz-data.js';
+import { QUESTIONS, RESULT, REVEAL, deriveVariables } from './quiz-data.js';
+import { resultCopy } from './result-copy.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -491,20 +492,18 @@ const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 60)
 /* ---------- answers from the URL ---------- */
 
 // The URL is the source of truth, so refresh, back/forward and a shared link all
-// work. Indices only — no personal data — and the server re-derives everything
-// from its own table, so a hand-edited URL cannot forge a result.
+// work. Indices only — no personal data — and every index has to name a real
+// option in the table below, so a hand-edited URL cannot forge a result.
 const raw = new URL(location.href).searchParams.get('a') ?? '';
 const answers = raw.split('-').map(Number);
 const valid =
-  answers.length === 4 &&
-  answers.every((n) => Number.isInteger(n) && n >= 0 && n < 10) &&
+  answers.length === QUESTIONS.length &&
+  answers.every((n) => Number.isInteger(n)) &&
   // The non-HR exit never reaches this page; it is answered in the chat.
   !QUESTIONS[0].options[answers[0]]?.exit &&
   answers.every((n, i) => Boolean(QUESTIONS[i].options[n]));
 
 if (!valid) location.replace('/');
-
-const key = answers.join('-');
 
 /* ---------- shared session id (see index.html) ---------- */
 
@@ -528,37 +527,6 @@ function track(payload) {
   }
 }
 
-/* ---------- data ---------- */
-
-const cacheKey = `hrp:res:${key}`;
-
-/** Prefetched by the chat, cached here on refresh, fetched fresh on a deep link. */
-async function loadResult() {
-  try {
-    const hit = JSON.parse(sessionStorage.getItem(cacheKey));
-    // Only trust a hit that matches the shape this page renders. A payload stored
-    // under an older shape still parses, so without this check the gap block
-    // silently disappears for anyone holding an older tab open.
-    if (typeof hit?.gap_body === 'string' && hit.ai_body) return hit;
-  } catch { /* ignore */ }
-
-  try {
-    const r = await fetch('/api/reveal', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ answers }),
-    });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const data = await r.json();
-    try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* ignore */ }
-    return data;
-  } catch {
-    // The reveal still runs: the path comes from the local table and the two
-    // generated scenes are simply left out.
-    return null;
-  }
-}
-
 /* ---------- scene 0 ---------- */
 
 $('loading-headline').textContent = REVEAL.loadingHeadline;
@@ -579,11 +547,11 @@ function setBar(pct) {
 }
 
 /**
- * Walks the steps on a fixed cadence, then holds on the last one until the data
- * is in. Holding is the honest part: if the model call is cold the beat
- * stretches instead of the page claiming to be finished.
+ * Walks the steps on a fixed cadence. Purely a designed beat now: the copy is a
+ * lookup in this document, so there is nothing to wait for and the scene is only
+ * as long as it needs to be to read.
  */
-async function playLoader(pending) {
+async function playLoader() {
   const last = stepEls.length - 1;
   setBar(6);
 
@@ -594,14 +562,10 @@ async function playLoader(pending) {
     setBar(((i + 1) / stepEls.length) * 100);
   }
 
-  // Hard ceiling so a hung request can never strand the visitor on the loader.
-  const data = await Promise.race([pending, wait(9000).then(() => null)]);
-
   await wait(400);
   stepEls[last].dataset.state = 'done';
   setBar(100);
   await wait(500);
-  return data;
 }
 
 /* ---------- the deck ---------- */
@@ -620,49 +584,40 @@ function scene(build, hint) {
   return s;
 }
 
-function buildScenes(data) {
-  const role = QUESTIONS[0].options[answers[0]];
-  const aspiration = QUESTIONS[3].options[answers[3]];
-  const roleLabel = data?.role_label ?? role.path_label ?? role.label;
-  const target = data?.aspiration_to ?? aspiration.aspiration_to;
+function buildScenes() {
+  const vars = deriveVariables(answers);
+  const { gap_body, ai_body } = resultCopy(vars);
 
   const list = [];
 
   // 1. The path the loader said it was assembling, and — on the same screen —
   //     what it takes to walk it. Read together: the gap is only legible while
-  //     both ends of the path are still on screen. The gap half is dropped if
-  //     the model call failed, leaving the path alone.
+  //     both ends of the path are still on screen.
   list.push(scene((s) => {
-    const gap = data?.gap_body
-      ? `<div class="gap">
-           <p class="head">${escapeHtml(RESULT.gapHeading)}</p>
-           <p class="body">${escapeHtml(data.gap_body)}</p>
-         </div>`
-      : '';
     s.innerHTML = `
       <div class="path">
         <div class="leg">
           <span class="lbl">${escapeHtml(RESULT.pathNowLabel)}</span>
-          <span class="val">${escapeHtml(roleLabel)}</span>
+          <span class="val">${escapeHtml(vars.role_label)}</span>
         </div>
         <p class="drop" aria-hidden="true"></p>
         <div class="leg">
           <span class="lbl">${escapeHtml(RESULT.pathTargetLabel)}</span>
-          <span class="val">${escapeHtml(target)}</span>
+          <span class="val">${escapeHtml(vars.aspiration_to)}</span>
         </div>
-      </div>${gap}`;
-    // Only promise the AI screen when there is one: it is dropped along with the
-    // gap if the model call failed.
-  }, data?.ai_body ? RESULT.aiTease : null));
+      </div>
+      <div class="gap">
+        <p class="head">${escapeHtml(RESULT.gapHeading)}</p>
+        <p class="body">${escapeHtml(gap_body)}</p>
+      </div>`;
+  }, RESULT.aiTease));
 
   // 2. What AI changes for them.
-  if (data?.ai_body) {
-    list.push(scene((s) => {
-      s.innerHTML = `
-        <p class="head">${escapeHtml(RESULT.aiHeading)}</p>
-        <p class="body">${escapeHtml(data.ai_body)}</p>`;
-    }, RESULT.programTease));
-  }
+  list.push(scene((s) => {
+    s.innerHTML = `
+      <p class="head">${escapeHtml(RESULT.aiHeading)}</p>
+      <p class="body">${escapeHtml(ai_body)}</p>`;
+  }, RESULT.programTease));
 
   // 3. The bridge into the program. This scene plays itself: the line types out,
   //     a bar fills under it, and the finale opens with no tap. The wait is the
@@ -785,9 +740,9 @@ function runDeck(scenes) {
 /* ---------- run ---------- */
 
 if (valid) {
-  const data = await playLoader(loadResult());
+  await playLoader();
   renderFinale();
-  runDeck(buildScenes(data));
+  runDeck(buildScenes());
   $('loader').dataset.done = 'true';
   setTimeout(() => $('loader').remove(), reduced ? 0 : 600);
 }

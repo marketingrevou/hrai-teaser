@@ -1,6 +1,7 @@
-// Single source of truth for the four questions, imported by both the browser
-// (for display) and the server (for deriving LLM variables). The client sends
-// answer indices only, so no free text ever reaches the model.
+// Single source of truth for the three questions and every fixed string the two
+// documents render. The answers are carried as indices, so a shared or
+// hand-edited /hasil link can only ever name a combination this table already
+// describes.
 
 // The cover. English here while the quiz that follows is Indonesian, matching the
 // split the program card already runs: the claim is the program's own positioning
@@ -18,7 +19,7 @@ export const HERO = {
 export const QUESTIONS = [
   {
     id: 'role',
-    eyebrow: '1 dari 4',
+    eyebrow: '1 dari 3',
     question: 'Apa role kamu saat ini?',
     subtitle: 'Pilih yang paling mendekati.',
     // `ack` is per question, not per answer: it only marks that the answer
@@ -43,43 +44,32 @@ export const QUESTIONS = [
     ],
   },
   {
-    id: 'altitude',
-    eyebrow: '2 dari 4',
-    // Anchored to the last real decision rather than a general habit, which is
-    // what the options answer: each one describes a specific place to have stood
-    // in a specific change, not a tendency. The examples sit in the subtitle so
-    // the bubble stays one question long.
-    question: 'Terakhir kali perusahaan mengambil keputusan besar, di tahap mana kamu dilibatkan?',
-    subtitle: 'Restrukturisasi, efisiensi biaya, atau perubahan arah bisnis.',
-    ack: 'Baik.',
-    options: [
-      { label: 'Saya ikut menentukan bahwa perubahan itu memang diperlukan', altitude: 4 },
-      { label: 'Arahnya sudah ditetapkan, saya diminta menyusun opsi dan dampaknya', altitude: 3 },
-      { label: 'Keputusannya sudah final, saya yang merancang cara menjalankannya', altitude: 2 },
-      { label: 'Rencananya sudah jadi, saya yang memastikan pelaksanaannya berjalan', altitude: 1 },
-    ],
-  },
-  {
     id: 'ai',
-    eyebrow: '3 dari 4',
+    eyebrow: '2 dari 3',
     question: 'Sejauh mana kamu sudah pakai AI di pekerjaan HR?',
     ack: 'Oke.',
+    // The four options are the rungs of the ladder the program teaches:
+    // output → keputusan → sistem. They are worded to match it, because Block C
+    // of the result answers whichever rung is picked by naming the work on the
+    // one above.
     options: [
-      { label: 'Belum saya gunakan untuk pekerjaan HR', ai_level: 1 },
-      { label: 'Untuk menulis: job description, email, draf kebijakan', ai_level: 2 },
-      { label: 'Untuk menganalisis data atau menyusun skenario', ai_level: 3 },
-      { label: 'Saya membangun sendiri tools atau workflow yang dipakai tim', ai_level: 4 },
+      { label: 'Belum saya pakai untuk pekerjaan HR', ai_level: 1 },
+      { label: 'Untuk menyusun draf: JD, email, kebijakan', ai_level: 2 },
+      { label: 'Untuk menguji keputusan: logika, skenario, analisis data', ai_level: 3 },
+      { label: 'Untuk membangun agent atau workflow yang dipakai tim', ai_level: 4 },
     ],
   },
   {
     id: 'aspiration',
-    eyebrow: '4 dari 4',
+    eyebrow: '3 dari 3',
     question: 'Apa yang mau kamu capai berikutnya?',
+    // `aspiration` picks the gap string, `aspiration_to` is the destination shown
+    // on the path and substituted into it. `head` and `hrbp` share one string per
+    // role type, so only the destination name changes between them.
     options: [
-      { label: 'Naik ke posisi HR Leadership seperti Head of HR', aspiration_to: 'Head of HR' },
-      { label: 'Pindah ke peran yang lebih strategis, seperti HR Business Partner', aspiration_to: 'HR Business Partner' },
-      { label: 'Menguasai seluruh fungsi HR dengan framework yang tepat', aspiration_to: 'Strategic HR generalist' },
-      { label: 'Bekerja lebih cepat dan lebih tajam dengan AI', aspiration_to: 'AI-fluent HR professional' },
+      { label: 'Naik ke posisi HR Leadership seperti Head of HR', aspiration: 'head', aspiration_to: 'Head of HR' },
+      { label: 'Pindah ke peran yang lebih strategis, seperti HR Business Partner', aspiration: 'hrbp', aspiration_to: 'HR Business Partner' },
+      { label: 'Menguasai seluruh fungsi HR dengan framework yang tepat', aspiration: 'breadth', aspiration_to: 'Strategic HR generalist' },
     ],
   },
 ];
@@ -110,12 +100,9 @@ export const HANDOFF = {
 export const REVEAL = {
   loadingHeadline: 'Jawaban kamu sedang diolah.',
   // One step per thing actually read, in the order the questions asked it.
-  // "Posisi kamu sekarang" and "Peran kamu sekarang" side by side read as the
-  // same item twice, so the second names what it really carries: the stage the
-  // visitor gets brought in at, in the words Q2 uses.
   steps: [
     'Peran kamu sekarang',
-    'Tahap kamu dilibatkan',
+    'Cara kamu memakai AI',
     'Yang diperlukan untuk mencapai tujuan kamu',
   ],
   advance: 'Ketuk untuk lanjut',
@@ -176,22 +163,22 @@ export const EXIT = {
 };
 
 /**
- * Turns four answer indices into the variables the model receives.
- * Returns null if any index is out of range.
+ * Turns three answer indices into the variables the result screen renders and
+ * looks its copy up by. Returns null if any index is out of range, or if the
+ * answers name the non-HR exit, which has no result.
  */
-export function deriveVariables([q1, q2, q3, q4]) {
+export function deriveVariables([q1, q2, q3]) {
   const role = QUESTIONS[0].options[q1];
-  const altitude = QUESTIONS[1].options[q2];
-  const ai = QUESTIONS[2].options[q3];
-  const aspiration = QUESTIONS[3].options[q4];
-  if (!role || !altitude || !ai || !aspiration || role.exit) return null;
+  const ai = QUESTIONS[1].options[q2];
+  const aspiration = QUESTIONS[2].options[q3];
+  if (!role || !ai || !aspiration || role.exit) return null;
 
   return {
     role_label: role.path_label ?? role.label,
     role_type: role.role_type,
     role_fn: role.role_fn,
-    altitude: altitude.altitude,
     ai_level: ai.ai_level,
+    aspiration: aspiration.aspiration,
     aspiration_to: aspiration.aspiration_to,
   };
 }
