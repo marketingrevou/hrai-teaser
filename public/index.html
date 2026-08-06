@@ -41,7 +41,6 @@
     <div>
       <p class="eyebrow" id="hero-eyebrow"></p>
       <h1 id="hero-headline"></h1>
-      <p class="hero-sub" id="hero-sub"></p>
     </div>
     <div class="hero-rule"></div>
     <button class="btn-primary" id="hero-cta" type="button"></button>
@@ -235,7 +234,6 @@ function track(payload) {
 
 $('hero-eyebrow').textContent = HERO.eyebrow;
 $('hero-headline').innerHTML = `${HERO.headline} <span class="hl">${HERO.headlineHighlight}</span>`;
-$('hero-sub').textContent = HERO.sub;
 $('hero-cta').textContent = HERO.cta;
 
 $('hero-cta').addEventListener('click', () => {

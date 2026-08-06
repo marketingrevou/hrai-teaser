@@ -12,7 +12,6 @@ export const HERO = {
   // Non-breaking space: "Strategic HR" is one name, and letting it split leaves
   // "HR" orphaned on a line of its own at 375px.
   headlineHighlight: 'Strategic\u00a0HR',
-  sub: 'A 15-week program that takes HR professionals from operational execution to strategic influence, with AI built into how you work.',
   cta: 'Eksplor program ini',
 };
 
