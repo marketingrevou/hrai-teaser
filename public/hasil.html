@@ -379,6 +379,8 @@
     max-width: 900px;
     margin: 0 auto;
   }
+  .stage .logo { width: 44px; height: 44px; }
+
   .stage > * { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .stage > :nth-child(2) { animation-delay: 0.14s; }
   .stage > :nth-child(3) { animation-delay: 0.3s; }
@@ -641,7 +643,11 @@ function buildScenes() {
 
 function renderFinale() {
   const c = RESULT.card;
+  // The logo opens the scene the way it opens the loader and the chat topbar.
+  // This is the one screen that asks for something, so it is also the one screen
+  // that should say plainly whose program is asking.
   $('stage').innerHTML = `
+    <img src="revou-logo.svg" alt="RevoU" class="logo" width="44" height="44">
     <span class="pill">${escapeHtml(c.pill)}</span>
     <h1>${escapeHtml(c.headline)} <span class="hl">${escapeHtml(c.headlineHighlight)}</span></h1>
     <p class="sub">${escapeHtml(c.sub)}</p>
