@@ -2,10 +2,16 @@
 // (for display) and the server (for deriving LLM variables). The client sends
 // answer indices only, so no free text ever reaches the model.
 
+// The cover. English here while the quiz that follows is Indonesian, matching the
+// split the program card already runs: the claim is the program's own positioning
+// line, the conversation is the reader's language.
 export const HERO = {
   eyebrow: 'Program baru RevoU · September 2026',
-  headline: 'Program HR pertama yang dibangun untuk',
-  headlineHighlight: 'era AI.',
+  headline: 'The First Program built for',
+  // Non-breaking space: "Strategic HR" is one name, and letting it split leaves
+  // "HR" orphaned on a line of its own at 375px.
+  headlineHighlight: 'Strategic\u00a0HR',
+  sub: 'A 15-week program that takes HR professionals from operational execution to strategic influence, with AI built into how you work.',
   cta: 'Eksplor program ini',
 };
 
@@ -142,19 +148,19 @@ export const RESULT = {
   // detail that used to sit below the fold here is the Open House's job to sell,
   // so the scene ends on the CTA instead of arguing past it.
   //
-  // The headline claims the category rather than naming the program, and the
-  // yellow tail carries "Strategic HR" — which is both the claim and the program
-  // name, so the payoff still lands in the largest type on the screen without the
-  // line having to be the bare title. The name stays out of the pill: it was the
-  // first thing read there and the largest thing read two lines below, and saying
-  // it twice spent the reveal on a repeat. `headline` is set uppercase by CSS, so
-  // it is stored in sentence case and stays readable to screen readers;
-  // `headlineHighlight` is the yellow tail.
+  // The headline is the program name, which is the payoff the whole reveal has
+  // been withholding — so it lands as the biggest thing on the screen rather than
+  // as a claim about the program, which the cover already made and the sub still
+  // carries. The name is therefore gone from the pill: it was the first thing read
+  // there and the largest thing read two lines below, and saying it twice spent
+  // the reveal on a repeat. `headline` is set uppercase by CSS, so it is stored in
+  // sentence case and stays readable to screen readers; `headlineHighlight` is the
+  // yellow tail, here the "AI" the program turns on.
   card: {
     pill: '15 weeks · Online',
-    headline: 'The First Program built for',
-    headlineHighlight: 'Strategic HR',
-    sub: 'A 15-week program that takes HR professionals from operational execution to strategic influence, with AI built into how you work.',
+    headline: 'Strategic HR with',
+    headlineHighlight: 'AI',
+    sub: 'A 15-week program that takes HR professionals from execution to strategy, with AI built into how you work.',
     cta: 'Daftar Open House',
     ctaHref: 'https://openhouse.revou.co/strategic-hr?utm_ops=teaser',
   },

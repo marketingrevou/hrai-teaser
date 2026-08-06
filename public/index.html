@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Program HR pertama yang dibangun untuk era AI · RevoU</title>
+<title>The First Program built for Strategic HR · RevoU</title>
 <meta name="description" content="Jawab empat pertanyaan singkat dan lihat posisi kamu sekarang dan yang diperlukan untuk mencapai tujuan kamu.">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,12 +35,13 @@
 <body>
 
 <div class="app">
-  <!-- Screen 1 — Hero. No program name here; the name is the payoff. -->
+  <!-- Screen 1 — Hero. -->
   <section class="hero" id="hero">
     <img src="revou-logo.svg" alt="RevoU" class="hero-logo">
     <div>
       <p class="eyebrow" id="hero-eyebrow"></p>
       <h1 id="hero-headline"></h1>
+      <p class="hero-sub" id="hero-sub"></p>
     </div>
     <div class="hero-rule"></div>
     <button class="btn-primary" id="hero-cta" type="button"></button>
@@ -230,6 +231,7 @@ function track(payload) {
 
 $('hero-eyebrow').textContent = HERO.eyebrow;
 $('hero-headline').innerHTML = `${HERO.headline} <span class="hl">${HERO.headlineHighlight}</span>`;
+$('hero-sub').textContent = HERO.sub;
 $('hero-cta').textContent = HERO.cta;
 
 $('hero-cta').addEventListener('click', () => {

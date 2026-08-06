@@ -103,6 +103,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
   max-width: 38ch;
 }
 
+/* Sits under the headline rather than beside it, so the gap belongs to the pair
+   and not to the section's own 22px rhythm. Two classes to out-specify
+   `.hero p { margin: 0 }` above without reaching for !important. */
+.hero .hero-sub { margin-top: 14px; }
+
 .btn-primary {
   align-self: flex-start;
   background: var(--cta-grad);
